@@ -1,0 +1,176 @@
+import { useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
+import { cn } from "@/lib/cn";
+import { Container } from "@/components/ui/Container";
+import { ChevronDown } from "@/components/ui/icons";
+import { siteConfig } from "@/data/mock/site";
+import { experiences } from "@/data/mock/experiences";
+
+const explore = [
+  { label: "Experiences", path: "/experiences" },
+  { label: "VIP Privilege", path: "/vip" },
+  { label: "About AFhomes", path: "/about" },
+  { label: "Stories & Insights", path: "/stories" },
+  { label: "FAQ", path: "/faq" },
+  { label: "Contact", path: "/contact" },
+];
+
+const footerLink =
+  "link-underline text-cream-200/80 transition-colors hover:text-leaf-300";
+
+interface FooterGroupProps {
+  id: string;
+  title: string;
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}
+
+/** Mobile-first collapsible link group; always expanded on large screens. */
+function FooterGroup({ id, title, open, onToggle, children }: FooterGroupProps) {
+  const contentId = `footer-group-${id}`;
+  return (
+    <div>
+      <h2 className="label-caps text-cream-300">
+        <div className="lg:hidden">
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={contentId}
+            onClick={onToggle}
+            className="flex w-full items-center justify-between gap-4 py-3.5 text-left"
+          >
+            {title}
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 shrink-0 text-cream-300/50 transition-transform duration-300",
+                open && "rotate-180",
+              )}
+            />
+          </button>
+        </div>
+        <span className="hidden lg:block">{title}</span>
+      </h2>
+      <div id={contentId} className={cn(open ? "block" : "hidden", "lg:block")}>
+        <ul className="mt-5 space-y-3">{children}</ul>
+      </div>
+    </div>
+  );
+}
+
+export function Footer() {
+  const year = new Date().getFullYear();
+  const [openGroups, setOpenGroups] = useState<string[]>(["explore"]);
+
+  const toggleGroup = (id: string) => {
+    setOpenGroups((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id],
+    );
+  };
+
+  return (
+    <footer className="bg-pine-950 text-cream-100">
+      <Container className="pt-16 pb-10 sm:pt-24">
+        {/* Brand statement */}
+        <div className="max-w-3xl">
+          <p className="label-caps text-gold-400">AFhomes</p>
+          <p className="font-display mt-4 text-4xl leading-[1.05] font-medium text-balance text-cream-50 sm:text-5xl lg:text-6xl">
+            Amazing &amp; Fun.
+            <br />
+            Your Home Away From Home.
+          </p>
+        </div>
+
+        {/* Columns — collapsible groups on mobile */}
+        <div className="mt-12 grid grid-cols-1 gap-10 border-t border-white/10 pt-10 sm:mt-16 sm:grid-cols-2 sm:pt-14 lg:grid-cols-4 lg:gap-12">
+          <FooterGroup id="explore" title="Explore" open={openGroups.includes("explore")} onToggle={() => toggleGroup("explore")}>
+            {explore.map((item) => (
+              <li key={item.path}>
+                <Link to={item.path} className={footerLink}>
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </FooterGroup>
+
+          <FooterGroup id="experiences" title="Experiences" open={openGroups.includes("experiences")} onToggle={() => toggleGroup("experiences")}>
+            {experiences.map((experience) => (
+              <li key={experience.id} className="flex flex-col">
+                <Link
+                  to={`/experiences/${experience.slug}`}
+                  className={footerLink}
+                >
+                  {experience.shortName}
+                </Link>
+                <span className="mt-0.5 text-[0.62rem] font-semibold tracking-[0.16em] text-cream-300/50 uppercase">
+                  {experience.statusLabel}
+                </span>
+              </li>
+            ))}
+          </FooterGroup>
+
+          <FooterGroup id="contact" title="Contact" open={openGroups.includes("contact")} onToggle={() => toggleGroup("contact")}>
+            <li>
+              <a href={`tel:${siteConfig.phone}`} className={cn(footerLink)}>
+                {siteConfig.phoneDisplay}
+              </a>
+            </li>
+            <li>
+              <a
+                href={`mailto:${siteConfig.email}`}
+                className={cn(footerLink, "break-all")}
+              >
+                {siteConfig.email}
+              </a>
+            </li>
+          </FooterGroup>
+
+          <FooterGroup id="offices" title="Offices" open={openGroups.includes("offices")} onToggle={() => toggleGroup("offices")}>
+            {siteConfig.offices.map((office) => (
+              <li key={office.name} className="flex flex-col gap-1">
+                <span className="text-sm font-semibold text-cream-100">
+                  {office.name}
+                </span>
+                {office.lines.map((line) => (
+                  <span key={line} className="text-sm leading-relaxed">
+                    {line}
+                  </span>
+                ))}
+              </li>
+            ))}
+          </FooterGroup>
+        </div>
+
+        {/* Transparency / disclaimers */}
+        <div className="mt-14 rounded-2xl border border-white/10 p-6 sm:mt-16 sm:p-8">
+          <p className="label-caps text-cream-300">Important Notice</p>
+          <p className="mt-4 max-w-4xl text-sm leading-relaxed text-cream-200/70 text-pretty">
+            AFHOMES is a hospitality and resort developer and operator. It does not offer real
+            estate investments, timeshares, club shares, or securities. Payments must be made
+            directly to the AFhomes Finance Department through official and verified channels.
+          </p>
+        </div>
+
+        {/* Legal row */}
+        <div className="mt-10 flex flex-col items-start justify-between gap-4 border-t border-white/10 pt-8 text-sm text-cream-300/60 sm:flex-row sm:items-center">
+          <p>
+            © {year} {siteConfig.brand.name} — AFhomes Group of Companies. All rights reserved.
+          </p>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <Link to="/compliance#privacy" className={cn(footerLink)}>
+              Privacy
+            </Link>
+            <Link to="/compliance#terms" className={cn(footerLink)}>
+              Terms
+            </Link>
+            <Link to="/compliance" className={cn(footerLink)}>
+              Compliance &amp; Transparency
+            </Link>
+          </div>
+        </div>
+      </Container>
+    </footer>
+  );
+}

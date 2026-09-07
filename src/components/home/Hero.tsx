@@ -1,0 +1,104 @@
+﻿import { useRef } from "react";
+import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { Container } from "@/components/ui/Container";
+import { AnimatedText } from "@/components/ui/AnimatedText";
+import { Button } from "@/components/ui/Button";
+import { ScrollIndicator } from "@/components/ui/ScrollIndicator";
+import { SmartImage } from "@/components/ui/SmartImage";
+import { getPlaceholder } from "@/lib/images";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { EASE } from "@/lib/motion";
+
+export function Hero() {
+  const ref = useRef<HTMLElement>(null);
+  const reducedMotion = useReducedMotion();
+  const coarsePointer = useMediaQuery("(pointer: coarse)");
+  /* Parallax stays on desktop pointers — on touch devices the scroll-linked
+     movement fights the user's own gestures and feels heavy. */
+  const allowParallax = !reducedMotion && !coarsePointer;
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"],
+  });
+
+  const parallaxY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
+  const parallaxScale = useTransform(scrollYProgress, [0, 1], [1.1, 1.22]);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.65], [1, 0]);
+
+  const heroImage = getPlaceholder("resort-valley");
+
+  return (
+    <section ref={ref} className="relative flex min-h-svh items-end overflow-hidden bg-pine-950">
+      {/* Background */}
+      <motion.div
+        className="absolute inset-0"
+        style={allowParallax ? { y: parallaxY, scale: parallaxScale } : undefined}
+        aria-hidden="true"
+      >
+        <SmartImage
+          spec={heroImage}
+          priority
+          className="h-full w-full object-cover object-center"
+          sizes="100vw"
+        />
+      </motion.div>
+      <div
+        className="absolute inset-0 bg-gradient-to-t from-pine-950 via-pine-950/55 to-pine-900/20"
+        aria-hidden="true"
+      />
+
+      {/* Content */}
+      <motion.div
+        className="relative z-10 w-full"
+        style={allowParallax ? { opacity: contentOpacity } : undefined}
+      >
+        <Container className="pb-28 pt-40 sm:pb-36">
+          <motion.p
+            className="label-caps flex items-center gap-3 text-cream-200/80"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05, duration: 0.8, ease: EASE }}
+          >
+            <span className="h-px w-10 bg-leaf-400" aria-hidden="true" />
+            Hospitality · Wellness · Dining · Nature — Laguna, Philippines
+          </motion.p>
+
+          <h1 className="mt-8 max-w-5xl">
+            <span className="font-display block text-[clamp(2.75rem,7vw,6.5rem)] leading-[0.95] font-medium text-cream-50 text-balance">
+              <AnimatedText text="Amazing & Fun." delay={0.15} />
+            </span>
+            <span className="font-display mt-4 block text-[clamp(1.75rem,4vw,3.5rem)] leading-[1.05] font-light text-cream-100 text-balance">
+              <AnimatedText text="Your Home Away From Home." delay={0.3} />
+            </span>
+          </h1>
+
+          <motion.p
+            className="mt-8 max-w-xl text-lg leading-relaxed text-cream-200/85 text-pretty sm:text-xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, duration: 0.8, ease: EASE }}
+          >
+            Hospitality, wellness, dining and nature brought together in experiences
+            designed for connection, restoration and memorable moments.
+          </motion.p>
+
+          <motion.div
+            className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.8, ease: EASE }}
+          >
+            <Button to="/experiences" variant="accent" size="lg" withArrow>
+              Explore AFhomes
+            </Button>
+            <Button to="/vip" variant="outline-light" size="lg" className="border-cream-50/50">
+              Discover VIP Privilege
+            </Button>
+          </motion.div>
+        </Container>
+      </motion.div>
+
+      <ScrollIndicator />
+    </section>
+  );
+}
