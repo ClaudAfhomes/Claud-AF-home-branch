@@ -9,10 +9,12 @@ import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Seo } from "@/lib/seo";
 import { getPlaceholder } from "@/lib/images";
-import { experiences } from "@/data/mock/experiences";
+import { cmsRepository } from "@/lib/cms";
 import { cn } from "@/lib/cn";
 
 export default function About() {
+  const experiences = cmsRepository.getExperiences();
+  const content = cmsRepository.getPageContent().about;
   return (
     <>
       <Seo
@@ -22,10 +24,10 @@ export default function About() {
       />
 
       <PageHeader
-        eyebrow="About AFhomes"
-        title="Hospitality, touched by home."
-        lede="AFhomes is a diversified hospitality and wellness group spanning eco-tourism, premium food and beverage concepts, and advanced wellness hospitality."
-        imageSpec={getPlaceholder("brand-field")}
+        eyebrow={content.eyebrow}
+        title={content.title}
+        lede={content.lede}
+        imageSpec={content.image.src ? content.image : getPlaceholder("brand-field")}
       />
 
       {/* Who we are + philosophy + the group in numbers */}
@@ -34,21 +36,19 @@ export default function About() {
           <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-12 lg:gap-16">
             <div className="lg:col-span-7">
               <SectionHeading
-                eyebrow="Who We Are"
-                title="A new kind of hospitality family."
-                lede="We bring homestyle warmth to every experience — dining, stay, and escape — and weave wellness, nature, entertainment, technology, and family moments into the places we build."
+                eyebrow={content.introEyebrow}
+                title={content.introTitle}
+                lede={content.introLede}
               />
 
               <Reveal delay={0.14}>
                 <blockquote className="mt-10 rounded-[1.25rem] border border-line bg-cream-50 p-8 shadow-soft sm:p-10">
                   <p className="label-caps flex items-center gap-3 text-leaf-700">
                     <span className="h-px w-8 bg-leaf-500" aria-hidden="true" />
-                    Our philosophy
+                    {content.philosophyTitle}
                   </p>
                   <p className="font-display mt-4 text-3xl leading-snug text-navy-900 italic sm:text-4xl">
-                    “Amazing &amp; Fun.
-                    <br />
-                    Homestyle &amp; Wellness.”
+                    {content.philosophyBody}
                   </p>
                 </blockquote>
               </Reveal>
@@ -68,12 +68,7 @@ export default function About() {
           {/* Group in numbers */}
           <Reveal delay={0.1}>
             <dl className="mt-20 grid grid-cols-2 gap-x-6 gap-y-10 border-t border-line pt-10 lg:grid-cols-4">
-              {[
-                { value: "03", label: "Experiences in the group" },
-                { value: "01", label: "Open today — ALM" },
-                { value: "18", label: "Hotel rooms, arriving Nov 2026" },
-                { value: "60", label: "Approximate hectares in Calauan" },
-              ].map((stat) => (
+              {content.stats.map((stat) => (
                 <div key={stat.label}>
                   <dt className="sr-only">{stat.label}</dt>
                   <CountUp
@@ -99,8 +94,7 @@ export default function About() {
               <div className="h-full rounded-[1.25rem] border border-line bg-cream-50 p-10 shadow-soft">
                 <p className="label-caps text-leaf-700">Vision</p>
                 <p className="font-display mt-5 text-3xl leading-snug font-medium text-navy-900 text-balance sm:text-4xl">
-                  A land of warmth and wellness — where every guest finds Amazing &amp; Fun.
-                  Your Home Away From Home.
+                  {content.vision}
                 </p>
               </div>
             </Reveal>
@@ -108,9 +102,7 @@ export default function About() {
               <div className="h-full rounded-[1.25rem] border border-line bg-cream-50 p-10 shadow-soft">
                 <p className="label-caps text-leaf-700">Mission</p>
                 <p className="font-display mt-5 text-3xl leading-snug font-medium text-navy-900 text-balance sm:text-4xl">
-                  To build a diversified family of hospitality experiences — homestyle
-                  hospitality, wellness, nature, and technology — developed responsibly for
-                  the people we serve and the land we care for.
+                  {content.mission}
                 </p>
               </div>
             </Reveal>
@@ -125,38 +117,19 @@ export default function About() {
             <div className="lg:col-span-5">
               <SectionHeading
                 id="model-heading"
-                eyebrow="Development Model"
-                title="A multi-tiered way of growing."
-                lede="AFhomes grows chapter by chapter — launching each experience when it is ready, and letting every opening strengthen the next."
+                eyebrow={content.modelEyebrow}
+                title={content.modelTitle}
+                lede={content.modelLede}
               />
             </div>
             <div className="lg:col-span-7">
               <Reveal delay={0.1}>
                 <p className="text-xl leading-relaxed text-ink-600 text-pretty">
-                  Our development model pairs proven hospitality operations with ambitious,
-                  longer-term vision. ALM Japanese Restaurant is open today; the Smart
-                  Wellness Hotel arrives in November 2026; and the Hotspring &amp; Ecofarm
-                  Resort in Calauan is being built responsibly, phase by phase.
+                  {content.modelBody}
                 </p>
               </Reveal>
               <ol className="mt-10 space-y-0">
-                {[
-                  {
-                    number: "01",
-                    title: "Write the standard — ALM, open now",
-                    body: "A culinary concept proving the AFhomes standard of hospitality today, before anything else is asked of our guests.",
-                  },
-                  {
-                    number: "02",
-                    title: "Deepen it — the Smart Wellness Hotel, November 2026",
-                    body: "An advanced wellness hospitality concept arriving in November 2026, where rest is designed as carefully as hospitality.",
-                  },
-                  {
-                    number: "03",
-                    title: "Expand it — the Hotspring & Ecofarm Resort, in development",
-                    body: "A master-planned nature destination developing phase by phase, with environmental and governmental compliance at every step.",
-                  },
-                ].map((chapter, index) => (
+                {content.modelChapters.map((chapter, index) => (
                   <li key={chapter.number} className="relative">
                     {index < 2 && (
                       <span
@@ -192,8 +165,8 @@ export default function About() {
         <Container>
           <SectionHeading
             id="operations-heading"
-            eyebrow="Current Operations"
-            title="What AFhomes is building today."
+            eyebrow={content.operationsEyebrow}
+            title={content.operationsTitle}
           />
 
           <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -245,15 +218,14 @@ export default function About() {
           <div className="flex flex-col items-start justify-between gap-8 rounded-[1.25rem] border border-white/10 bg-navy-900/60 p-10 sm:p-14 lg:flex-row lg:items-center">
             <div>
               <h2 className="font-display text-4xl leading-tight font-medium text-balance sm:text-5xl">
-                Meet the AFhomes family.
+                {content.familyHeading}
               </h2>
               <p className="mt-4 max-w-xl text-lg text-cream-200/75">
-                From the table at ALM to the smart rest of the hotel and beyond — we'd love
-                to welcome you home.
+                {content.familyLede}
               </p>
             </div>
             <Button to="/contact" variant="accent" size="lg" withArrow>
-              Say hello
+              {content.familyButton}
             </Button>
           </div>
         </Container>

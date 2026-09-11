@@ -27,7 +27,7 @@ export function SmartImage({
 }: SmartImageProps) {
   const [failed, setFailed] = useState(false);
 
-  if (failed) {
+  if (failed || !spec.src) {
     return (
       <div
         role="img"

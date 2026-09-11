@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/Button";
 import { VipTierCard } from "@/components/vip/VipTierCard";
 import { LoadingState, ErrorState } from "@/components/ui/Feedback";
 import { Seo } from "@/lib/seo";
+import { useEffect } from "react";
 import { useAsync } from "@/hooks/useAsync";
 import { vipService } from "@/services/vipService";
+import { cmsRepository } from "@/lib/cms";
 
 const included = [
   {
@@ -26,6 +28,21 @@ const included = [
 
 export default function VIPPrivilege() {
   const { data: plans, loading, error, retry } = useAsync(() => vipService.getPlans());
+  const content = cmsRepository.getPageContent().vip;
+
+  useEffect(() => {
+    const refreshVipPlans = (event: Event) => {
+      if (event instanceof CustomEvent && event.detail !== "vip") return;
+      retry();
+    };
+
+    window.addEventListener("afhomes-cms-updated", refreshVipPlans);
+    window.addEventListener("storage", refreshVipPlans);
+    return () => {
+      window.removeEventListener("afhomes-cms-updated", refreshVipPlans);
+      window.removeEventListener("storage", refreshVipPlans);
+    };
+  }, [retry]);
 
   return (
     <>
@@ -36,9 +53,9 @@ export default function VIPPrivilege() {
       />
 
       <PageHeader
-        eyebrow="VIP Privilege"
-        title="Your passport to the AFhomes experience."
-        lede="Fixed VIP discounts. Priority reservations. Welcome gifts. Loyalty stay points. One program that follows you across dine, stay, and escape."
+        eyebrow={content.eyebrow}
+        title={content.title}
+        lede={content.lede}
         className="bg-navy-950"
       >
         <div
@@ -52,9 +69,9 @@ export default function VIPPrivilege() {
         <Container>
           <SectionHeading
             id="vip-tiers-heading"
-            eyebrow="Choose your tier"
-            title="Three tiers of belonging."
-            lede="Each tier shares the same essential benefits — the difference is the depth of the reward, chosen to match you."
+            eyebrow={content.tierEyebrow}
+            title={content.tierTitle}
+            lede={content.tierLede}
           />
 
           <div className="mt-14 lg:mt-20">
@@ -83,23 +100,7 @@ export default function VIPPrivilege() {
       <section className="border-y border-line bg-cream-50 py-20 sm:py-24" aria-label="How VIP Privilege works">
         <Container>
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-3 sm:gap-8">
-            {[
-              {
-                number: "01",
-                title: "Choose your tier",
-                body: "Gold, Silver, or Bronze — every tier shares the same essential privileges; only the depth of the reward differs.",
-              },
-              {
-                number: "02",
-                title: "Register with AFhomes",
-                body: "Registration details and cardholder rules are shared when you enquire — always through official AFhomes channels.",
-              },
-              {
-                number: "03",
-                title: "Enjoy your privileges",
-                body: "Fixed discounts, priority reservation rights, and welcome gifts follow you across dine, stay, and escape.",
-              },
-            ].map((step, index) => (
+            {content.steps.map((step, index) => (
               <Reveal key={step.number} delay={index * 0.08} y={24}>
                 <div className="border-t border-line pt-6">
                   <span className="font-display text-sm text-gold-600 italic">
@@ -123,13 +124,13 @@ export default function VIPPrivilege() {
             <div className="lg:col-span-5">
               <SectionHeading
                 id="vip-included-heading"
-                eyebrow="In every tier"
-                title="The fundamentals of welcome."
-                lede="Whatever tier you choose, these privileges come with the card. Registration details and cardholder rules are shared when you enquire."
+                eyebrow={content.includedEyebrow}
+                title={content.includedTitle}
+                lede={content.includedLede}
               />
               <Reveal delay={0.15}>
                 <Button to="/contact" variant="primary" size="md" withArrow className="mt-8">
-                  Ask about registration
+                  {content.includedButton}
                 </Button>
               </Reveal>
             </div>
@@ -164,8 +165,8 @@ export default function VIPPrivilege() {
             <SectionHeading
               id="vip-transparency-heading"
               tone="dark"
-              eyebrow="Read carefully"
-              title="What the program is — and what it is not."
+              eyebrow={content.transparencyEyebrow}
+              title={content.transparencyTitle}
             />
           </div>
 
@@ -196,15 +197,14 @@ export default function VIPPrivilege() {
             <div className="mt-12 flex flex-col items-start justify-between gap-6 rounded-[1.25rem] bg-gradient-to-br from-navy-800 to-navy-900 p-10 sm:p-12 lg:flex-row lg:items-center">
               <div>
                 <h3 className="font-display text-3xl font-medium text-balance sm:text-4xl">
-                  Ready to become part of the AFhomes family?
+                  {content.transparencyLede}
                 </h3>
                 <p className="mt-3 max-w-xl text-cream-200/75">
-                  Tell us which tier you're interested in and our team will walk you through
-                  the details.
+                  {content.transparencyTitle}
                 </p>
               </div>
               <Button to="/contact" variant="accent" size="lg" withArrow>
-                Get in touch
+                {content.transparencyButton}
               </Button>
             </div>
           </Reveal>

@@ -2,10 +2,11 @@
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/ui/Reveal";
 import { SmartImage } from "@/components/ui/SmartImage";
-import { StatusBadge } from "@/components/ui/Badge";
+import { Badge, StatusBadge } from "@/components/ui/Badge";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ArrowRight } from "@/components/ui/icons";
-import { experiences } from "@/data/mock/experiences";
+import { cmsRepository } from "@/lib/cms";
+import { useCmsRevision } from "@/hooks/useCmsRevision";
 import type { Experience } from "@/types/experience";
 
 const verbs: Record<string, string> = {
@@ -69,6 +70,8 @@ function supportingPanel(experience: Experience, surface: string) {
 }
 
 export function Ecosystem() {
+  useCmsRevision();
+  const experiences = cmsRepository.getExperiences();
   const alm = experiences.find((experience) => experience.id === "alm-japanese-restaurant");
   const hotel = experiences.find((experience) => experience.id === "smart-wellness-hotel");
   const resort = experiences.find((experience) => experience.id === "hotspring-ecofarm-resort");
@@ -81,9 +84,9 @@ export function Ecosystem() {
       <Container>
         <SectionHeading
           id="ecosystem-heading"
-          eyebrow="The AFhomes Ecosystem"
-          title="One family of experiences."
-          lede="From the live fire of a teppanyaki table to the quiet of a smartly rested night and the wide-open calm of the countryside — three experiences, one connected AFhomes."
+          eyebrow={cmsRepository.getPageContent().home.ecosystemEyebrow}
+          title={cmsRepository.getPageContent().home.ecosystemTitle}
+          lede={cmsRepository.getPageContent().home.ecosystemLede}
         />
 
         <div className="mt-16 grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8 sm:mt-20">
@@ -109,6 +112,7 @@ export function Ecosystem() {
                   <span className="absolute inset-0 flex flex-col justify-end p-8 text-cream-50 sm:p-10">
                     <span className="flex flex-wrap items-center gap-3">
                       <span className="label-caps text-leaf-300">{verbs[alm.id]}</span>
+                      {alm.featured && <Badge tone="gold">Featured</Badge>}
                       <StatusBadge
                         status={alm.status}
                         label={alm.statusLabel}

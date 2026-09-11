@@ -39,6 +39,10 @@ const tierStyle: Record<
 
 export function VipTierCard({ plan }: VipTierCardProps) {
   const style = tierStyle[plan.id] ?? tierStyle.silver;
+  const defaultImage =
+    plan.id === "gold" || plan.id === "silver" || plan.id === "bronze"
+      ? getPlaceholder(`vip-card-${plan.id}`)
+      : getPlaceholder("vip-card-silver");
 
   return (
     <TiltCard className="h-full">
@@ -56,7 +60,7 @@ export function VipTierCard({ plan }: VipTierCardProps) {
         <div className="relative">
           <div className="overflow-hidden rounded-xl border border-white/10">
             <SmartImage
-              spec={getPlaceholder(`vip-card-${plan.id}`)}
+              spec={plan.image ?? defaultImage}
               className="aspect-[2560/1597] w-full"
               imgClassName="object-cover"
               sizes="(max-width: 768px) 100vw, 33vw"

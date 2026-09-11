@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { siteConfig } from "@/data/mock/site";
+import { cmsRepository } from "@/lib/cms";
 
 const DEFAULT_DESCRIPTION =
   "AFhomes — Amazing & Fun. Your Home Away From Home. Hospitality, wellness, dining, nature and experiences in Laguna, Philippines.";
@@ -39,6 +39,7 @@ interface SeoProps {
  */
 export function Seo({ title, description = DEFAULT_DESCRIPTION, path = "/" }: SeoProps) {
   useEffect(() => {
+    const siteConfig = cmsRepository.getSiteConfig();
     document.title = `${title} — AFhomes`;
     setMeta("name", "description", description);
     setMeta("property", "og:url", `${siteConfig.siteUrl}${path}`);

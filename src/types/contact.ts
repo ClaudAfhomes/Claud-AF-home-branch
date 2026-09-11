@@ -9,6 +9,12 @@ export const INQUIRY_TYPES = [
 export type InquiryType = (typeof INQUIRY_TYPES)[number];
 
 export interface ContactFormValues {
+  requestId?: string;
+  kind?: "inquiry" | "reservation";
+  visitDate?: string;
+  endDate?: string;
+  guests?: number;
+  website?: string;
   name: string;
   email: string;
   contactNumber: string;

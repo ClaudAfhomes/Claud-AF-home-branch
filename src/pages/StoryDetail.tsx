@@ -82,7 +82,7 @@ export default function StoryDetail() {
               className="h-full w-full object-cover opacity-55"
               sizes="100vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/45 to-navy-950/20" />
+            <div className="absolute inset-0 bg-linear-to-t from-navy-950 via-navy-950/45 to-navy-950/20" />
           </div>
           <Container className="relative pb-16 pt-44">
             <Reveal>

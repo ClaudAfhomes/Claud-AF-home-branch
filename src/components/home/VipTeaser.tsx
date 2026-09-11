@@ -8,6 +8,8 @@ import { vipService } from "@/services/vipService";
 import { LoadingState, ErrorState } from "@/components/ui/Feedback";
 import type { VipPlan } from "@/types/vip";
 import { cn } from "@/lib/cn";
+import { cmsRepository } from "@/lib/cms";
+import { useEffect } from "react";
 
 /** Membership card treatments — premium, not a pricing table. */
 const tierStyle: Record<
@@ -46,9 +48,16 @@ function TierCard({ plan, index }: { plan: VipPlan; index: number }) {
           style.card,
         )}
       >
+        {plan.image && (
+          <SmartImage
+            spec={plan.image}
+            className="mb-6 aspect-[16/9] w-full rounded-xl opacity-90"
+            sizes="(max-width: 768px) 100vw, 33vw"
+          />
+        )}
         <div className="flex items-center justify-between">
           <p className={cn("label-caps", style.name)}>VIP tier</p>
-          {style.chip && (
+          {plan.featured && (
             <span className="label-caps rounded-full bg-gold-500 px-3 py-1.5 text-navy-950">
               Flagship tier
             </span>
@@ -98,6 +107,19 @@ function TierCard({ plan, index }: { plan: VipPlan; index: number }) {
 export function VipTeaser() {
   const { data: plans, loading, error, retry } = useAsync(() => vipService.getPlans());
 
+  useEffect(() => {
+    const refresh = (event: Event) => {
+      if (event instanceof CustomEvent && event.detail !== "vip") return;
+      retry();
+    };
+    window.addEventListener("afhomes-cms-updated", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("afhomes-cms-updated", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, [retry]);
+
   return (
     <section
       className="relative overflow-hidden bg-navy-950 py-24 text-cream-100 sm:py-32"
@@ -118,7 +140,7 @@ export function VipTeaser() {
           <Reveal>
             <p className="label-caps flex items-center gap-3 text-gold-400">
               <span className="h-px w-8 bg-gold-500" aria-hidden="true" />
-              VIP Privilege
+              {cmsRepository.getPageContent().home.vipTeaserEyebrow}
             </p>
           </Reveal>
           <Reveal delay={0.05}>
@@ -126,13 +148,12 @@ export function VipTeaser() {
               id="vip-teaser-heading"
               className="font-display mt-6 text-5xl leading-[1.02] font-medium text-balance text-cream-50 sm:text-6xl"
             >
-              Your passport to the AFhomes experience.
+              {cmsRepository.getPageContent().home.vipTeaserTitle}
             </h2>
           </Reveal>
           <Reveal delay={0.12}>
             <p className="text-body-lg mt-6 max-w-2xl text-cream-200/75 text-pretty">
-              Fixed VIP discounts, priority reservations, welcome gifts, and loyalty stay
-              points — across everything AFhomes builds.
+              {cmsRepository.getPageContent().home.vipTeaserLede}
             </p>
           </Reveal>
         </div>
@@ -159,7 +180,7 @@ export function VipTeaser() {
         <Reveal delay={0.2}>
           <div className="mt-12">
             <Button to="/vip" variant="accent" size="lg" withArrow>
-              Explore VIP Privileges
+              {cmsRepository.getPageContent().home.vipTeaserButton}
             </Button>
           </div>
         </Reveal>

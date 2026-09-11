@@ -7,7 +7,7 @@ export const siteConfig: SiteConfig = {
     tagline: "Amazing & Fun. Your Home Away From Home.",
     mantra: "A new way to experience hospitality.",
   },
-  email: "info@afhomes.com.ph",
+  email: "claudmarsjimenez.afhomes@gmail.com",
   phone: "+639604316867",
   phoneDisplay: "+63 960-431-6867",
   offices: [

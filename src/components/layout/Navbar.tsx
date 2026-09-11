@@ -6,8 +6,7 @@ import { cn } from "@/lib/cn";
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
 import { SmartImage } from "@/components/ui/SmartImage";
-import { siteConfig } from "@/data/mock/site";
-import { experiences } from "@/data/mock/experiences";
+import { cmsRepository } from "@/lib/cms";
 import type { ExperienceStatus } from "@/types/experience";
 import { ArrowRight } from "@/components/ui/icons";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -18,10 +17,6 @@ const statusDot: Record<ExperienceStatus, string> = {
   "opening-soon": "bg-gold-500",
   "in-development": "bg-cyan-500",
 };
-
-const desktopLinks = siteConfig.nav.main.filter((item) =>
-  ["vip", "about", "stories", "faq", "contact"].includes(item.path.replace("/", "")),
-);
 
 /* Mobile menu — a calm, sequential reveal. Children catch up to the panel
    fade, so the open feels effortless and the close stays quick. */
@@ -49,6 +44,11 @@ const menuItem: Variants = {
 };
 
 export function Navbar() {
+  const siteConfig = cmsRepository.getSiteConfig();
+  const experiences = cmsRepository.getExperiences();
+  const desktopLinks = siteConfig.nav.main.filter((item) =>
+    ["vip", "about", "stories", "faq", "contact"].includes(item.path.replace("/", "")),
+  );
   const location = useLocation();
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const [scrolled, setScrolled] = useState(false);

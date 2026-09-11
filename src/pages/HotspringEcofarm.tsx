@@ -9,10 +9,10 @@ import { Button } from "@/components/ui/Button";
 import { ExperienceHero } from "@/components/experiences/ExperienceHero";
 import { Seo } from "@/lib/seo";
 import { getPlaceholder } from "@/lib/images";
-import { getExperienceBySlug } from "@/data/mock/experiences";
+import { cmsRepository } from "@/lib/cms";
 
 export default function HotspringEcofarm() {
-  const experience = getExperienceBySlug("hotspring-ecofarm-resort");
+  const experience = cmsRepository.getExperiences().find((item) => item.slug === "hotspring-ecofarm-resort");
 
   if (!experience) return null;
 

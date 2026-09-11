@@ -6,10 +6,12 @@ import { Accordion } from "@/components/ui/Accordion";
 import { Reveal } from "@/components/ui/Reveal";
 import { Button } from "@/components/ui/Button";
 import { Seo } from "@/lib/seo";
-import { faqCategories } from "@/data/mock/faq";
+import { cmsRepository } from "@/lib/cms";
 import { cn } from "@/lib/cn";
 
 export default function FAQ() {
+  const faqCategories = cmsRepository.getFaqCategories();
+  const content = cmsRepository.getPageContent().faq;
   const [active, setActive] = useState(faqCategories[0]?.id ?? "");
 
   return (
@@ -21,9 +23,9 @@ export default function FAQ() {
       />
 
       <PageHeader
-        eyebrow="FAQ"
-        title="Questions, answered."
-        lede="Everything you might want to know about AFhomes — about the group, the experiences, the VIP program, and compliance."
+        eyebrow={content.eyebrow}
+        title={content.title}
+        lede={content.lede}
       />
 
       <section className="bg-cream-100 py-20 sm:py-28">
@@ -33,7 +35,7 @@ export default function FAQ() {
             <div className="lg:col-span-4">
               <SectionHeading
                 eyebrow="Browse by topic"
-                title="Pick a category."
+                title={content.browseTitle}
               />
               <Reveal delay={0.1}>
                 <div
@@ -81,10 +83,10 @@ export default function FAQ() {
                 <div className="mt-10 rounded-2xl border border-line bg-cream-50 p-6">
                   <p className="label-caps text-ink-400">Still have a question?</p>
                   <p className="mt-3 text-sm leading-relaxed text-ink-600">
-                    Our team is happy to help — reach out any time and we'll get back to you.
+                    {content.contactPrompt}
                   </p>
                   <Button to="/contact" variant="text" size="sm" withArrow className="mt-4">
-                    Contact AFhomes
+                    {content.stillCuriousButton}
                   </Button>
                 </div>
               </Reveal>
@@ -127,14 +129,14 @@ export default function FAQ() {
           <div className="flex flex-col items-start justify-between gap-8 rounded-[1.25rem] border border-white/10 bg-navy-900/60 p-10 sm:p-14 lg:flex-row lg:items-center">
             <div>
               <h2 className="font-display text-4xl leading-tight font-medium text-balance sm:text-5xl">
-                Still curious?
+                {content.stillCuriousTitle}
               </h2>
               <p className="mt-4 max-w-xl text-lg text-cream-200/75">
-                Our team is happy to help — reach out any time and we'll get back to you.
+                {content.stillCuriousLede}
               </p>
             </div>
             <Button to="/contact" variant="accent" size="lg" withArrow>
-              Contact AFhomes
+              {content.stillCuriousButton}
             </Button>
           </div>
         </Container>

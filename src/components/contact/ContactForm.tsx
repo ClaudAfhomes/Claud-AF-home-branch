@@ -1,4 +1,6 @@
-import { useState } from "react";
+﻿import { useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { inquirySchema } from "@/lib/inquiryValidation";
 import {
   FormField,
   FieldInput,
@@ -9,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { INQUIRY_TYPES, type ContactFormValues, type SubmitStatus } from "@/types/contact";
 import { contactService } from "@/services/contactService";
+import { hasSupabaseConfig } from "@/lib/supabase";
 
 type Errors = Partial<Record<keyof ContactFormValues, string>>;
 
@@ -47,7 +50,10 @@ function validate(values: ContactFormValues): Errors {
 }
 
 export function ContactForm() {
-  const [values, setValues] = useState<ContactFormValues>(initialValues);
+  const [params] = useSearchParams();
+  const [values, setValues] = useState<ContactFormValues>(() => ({ ...initialValues, kind: params.get("reservation") === "1" ? "reservation" : "inquiry", guests: 1 }));
+  const requestId = useRef(crypto.randomUUID());
+  const inFlight = useRef(false);
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [notice, setNotice] = useState<string | null>(null);
@@ -59,20 +65,29 @@ export function ContactForm() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (inFlight.current) return;
 
     const nextErrors = validate(values);
     setErrors(nextErrors);
 
     if (Object.values(nextErrors).some(Boolean)) return;
+    const payload = { ...values, requestId: requestId.current, visitDate: values.visitDate || undefined, endDate: values.endDate || undefined };
+    const checked = inquirySchema.safeParse(payload);
+    if (!checked.success) {
+      setStatus("error");
+      setNotice(checked.error.issues.map((issue) => issue.message).join(" "));
+      return;
+    }
 
+    inFlight.current = true;
     setStatus("submitting");
     setNotice(null);
 
     try {
-      const result = await contactService.submitInquiry(values);
+      const result = await contactService.submitInquiry(payload);
       if (result.ok) {
         setStatus("success");
-        setNotice(result.message);
+        setNotice(`${result.message} Reference: ${result.reference}`);
       } else {
         setStatus("error");
         setNotice(result.message);
@@ -80,7 +95,7 @@ export function ContactForm() {
     } catch (cause) {
       setStatus("error");
       setNotice(cause instanceof Error ? cause.message : "Something went wrong. Please try again.");
-    }
+    } finally { inFlight.current = false; }
   };
 
   if (status === "success") {
@@ -91,13 +106,14 @@ export function ContactForm() {
         aria-live="polite"
       >
         <p className="font-display text-4xl font-medium text-navy-900 text-balance">
-          Message received.
+          {hasSupabaseConfig ? "Message sent." : "Request saved locally."}
         </p>
         <p className="mx-auto mt-4 max-w-xl leading-relaxed text-ink-600">{notice}</p>
         <button
           type="button"
           onClick={() => {
             setValues(initialValues);
+            requestId.current = crypto.randomUUID();
             setStatus("idle");
             setNotice(null);
           }}
@@ -111,6 +127,18 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-6">
+      {!hasSupabaseConfig && (
+        <p className="rounded-lg border border-line bg-leaf-100 p-4 text-sm text-pine-800">
+          Local demo: submissions stay in this browser and are not sent to AFhomes.
+        </p>
+      )}
+      <FormField id="request-kind" label="How can we help?">
+        <FieldSelect id="request-kind" value={values.kind ?? "inquiry"} onChange={(event) => update("kind", event.target.value as "inquiry" | "reservation")}>
+          <option value="inquiry">Send an inquiry</option><option value="reservation">Request a reservation</option>
+        </FieldSelect>
+      </FormField>
+      <div hidden aria-hidden="true"><label>Website<input tabIndex={-1} autoComplete="off" value={values.website ?? ""} onChange={(event) => update("website", event.target.value)} /></label></div>
+      {values.kind === "reservation" && <div className="space-y-4 rounded-lg border border-line p-5"><p className="text-sm text-pine-800">Request your preferred dates. Our team will confirm availability and any payment arrangements directly.</p><div className="grid gap-4 sm:grid-cols-3"><FormField id="visit-date" label="Visit / check-in date" required><FieldInput id="visit-date" type="date" value={values.visitDate ?? ""} onChange={(event) => update("visitDate", event.target.value)} /></FormField><FormField id="end-date" label="Check-out date (optional)"><FieldInput id="end-date" type="date" value={values.endDate ?? ""} onChange={(event) => update("endDate", event.target.value)} /></FormField><FormField id="guests" label="Guests" required><FieldInput id="guests" type="number" min={1} max={100} value={values.guests ?? 1} onChange={(event) => update("guests", Number(event.target.value))} /></FormField></div></div>}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <FormField id="contact-name" label="Name" required error={errors.name}>
           <FieldInput
@@ -224,3 +252,4 @@ export function ContactForm() {
     </form>
   );
 }
+

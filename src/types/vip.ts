@@ -1,5 +1,7 @@
 export type VipTierId = "gold" | "silver" | "bronze";
 
+import type { ImageSpec } from "@/lib/images";
+
 export interface VipPlan {
   id: VipTierId;
   name: string;
@@ -11,5 +13,7 @@ export interface VipPlan {
   benefits: string[];
   accentText: string;
   accentBg: string;
+  image?: ImageSpec;
   featured?: boolean;
+  archived?: boolean;
 }

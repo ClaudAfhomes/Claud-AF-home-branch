@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { ExperienceHero } from "@/components/experiences/ExperienceHero";
 import { Seo } from "@/lib/seo";
 import { getPlaceholder } from "@/lib/images";
-import { getExperienceBySlug } from "@/data/mock/experiences";
+import { cmsRepository } from "@/lib/cms";
 
 const rooms = [
   { label: "Rooms in total", value: "18", note: "An intimate, boutique scale" },
@@ -51,7 +51,7 @@ const technologies = [
 ];
 
 export default function SmartWellnessHotel() {
-  const experience = getExperienceBySlug("smart-wellness-hotel");
+  const experience = cmsRepository.getExperiences().find((item) => item.slug === "smart-wellness-hotel");
 
   if (!experience) return null;
 

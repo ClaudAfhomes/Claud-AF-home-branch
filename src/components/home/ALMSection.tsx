@@ -5,15 +5,13 @@ import { StatusBadge } from "@/components/ui/Badge";
 import { ImageReveal } from "@/components/ui/ImageReveal";
 import { Button } from "@/components/ui/Button";
 import { getPlaceholder } from "@/lib/images";
-
-const features = [
-  { label: "Live Teppanyaki", note: "Cooking as a performance" },
-  { label: "Upscale Lounge", note: "For relaxed evenings" },
-  { label: "Private Gatherings", note: "Family-first dining" },
-  { label: "Corporate Events", note: "Space with style" },
-];
+import { cmsRepository } from "@/lib/cms";
+import { useCmsRevision } from "@/hooks/useCmsRevision";
 
 export function ALMSection() {
+  useCmsRevision();
+  const content = cmsRepository.getPageContent().home;
+  const experience = cmsRepository.getExperiences().find((item) => item.id === "alm-japanese-restaurant");
   return (
     <section
       className="relative overflow-hidden bg-[#14100e] py-24 text-cream-100 sm:py-32 lg:py-36"
@@ -30,7 +28,7 @@ export function ALMSection() {
             <Reveal>
               <StatusBadge
                 status="open"
-                label="Now Open"
+                label={content.almBadge}
                 tone="dark"
                 className="border-white/20 bg-white/10 backdrop-blur-md"
               />
@@ -52,21 +50,18 @@ export function ALMSection() {
                 id="alm-heading"
                 className="font-display mt-7 text-5xl leading-[1.02] font-medium text-balance text-cream-50 sm:text-6xl"
               >
-                The art of Japanese dining.
+                {content.almTitle}
               </h2>
             </Reveal>
             <Reveal delay={0.16}>
               <p className="text-body-lg mt-7 max-w-xl text-cream-200/75 text-pretty">
-                A 600 sqm Japanese restaurant in Alaminos, Laguna — built around live
-                Teppanyaki, an upscale lounge, and moments made for family and friends.
-                Every course is prepared with the craft and theatre Japanese dining is
-                loved for.
+                {content.almLede}
               </p>
             </Reveal>
 
             <Reveal delay={0.22}>
               <dl className="mt-10 grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
-                {features.map((feature) => (
+                {content.almFeatures.map((feature) => (
                   <div key={feature.label} className="border-l-2 border-coral-500/60 pl-4">
                     <dt className="font-display text-xl font-medium text-cream-50">
                       {feature.label}
@@ -85,15 +80,15 @@ export function ALMSection() {
                 withArrow
                 className="mt-10"
               >
-                Discover ALM
+                {content.almButton}
               </Button>
             </Reveal>
           </div>
 
           <div className="relative lg:col-span-6">
             <Reveal y={40}>
-              <ImageReveal
-                spec={getPlaceholder("alm-teppanyaki")}
+                <ImageReveal
+                spec={experience?.image ?? getPlaceholder("alm-teppanyaki")}
                 ratio="aspect-[4/3]"
                 className="rounded-[1.25rem]"
               />
@@ -106,7 +101,7 @@ export function ALMSection() {
                   className="rounded-2xl border-8 border-[#14100e]"
                 />
                 <p className="font-display mt-4 text-right text-lg text-cream-200/60 italic">
-                  Live culinary theater, prepared at the table.
+                  {content.almImageNote}
                 </p>
               </div>
             </Reveal>

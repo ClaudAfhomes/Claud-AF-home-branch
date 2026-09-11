@@ -19,4 +19,6 @@ export interface Experience {
   theme: "culinary" | "wellness" | "nature";
   accent: string;
   image: ImageSpec;
+  featured?: boolean;
+  archived?: boolean;
 }

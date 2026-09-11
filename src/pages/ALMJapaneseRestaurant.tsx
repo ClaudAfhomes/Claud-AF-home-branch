@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { ExperienceHero } from "@/components/experiences/ExperienceHero";
 import { Seo } from "@/lib/seo";
 import { getPlaceholder } from "@/lib/images";
-import { getExperienceBySlug } from "@/data/mock/experiences";
+import { cmsRepository } from "@/lib/cms";
 
 const details = [
   {
@@ -43,7 +43,7 @@ const gallery = [
 ];
 
 export default function ALMJapaneseRestaurant() {
-  const experience = getExperienceBySlug("alm-japanese-restaurant");
+  const experience = cmsRepository.getExperiences().find((item) => item.slug === "alm-japanese-restaurant");
 
   if (!experience) return null;
 

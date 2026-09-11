@@ -3,17 +3,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/cn";
 import { Container } from "@/components/ui/Container";
 import { ChevronDown } from "@/components/ui/icons";
-import { siteConfig } from "@/data/mock/site";
-import { experiences } from "@/data/mock/experiences";
-
-const explore = [
-  { label: "Experiences", path: "/experiences" },
-  { label: "VIP Privilege", path: "/vip" },
-  { label: "About AFhomes", path: "/about" },
-  { label: "Stories & Insights", path: "/stories" },
-  { label: "FAQ", path: "/faq" },
-  { label: "Contact", path: "/contact" },
-];
+import { cmsRepository } from "@/lib/cms";
 
 const footerLink =
   "link-underline text-cream-200/80 transition-colors hover:text-leaf-300";
@@ -59,6 +49,9 @@ function FooterGroup({ id, title, open, onToggle, children }: FooterGroupProps) 
 }
 
 export function Footer() {
+  const siteConfig = cmsRepository.getSiteConfig();
+  const experiences = cmsRepository.getExperiences();
+  const explore = siteConfig.nav.main.filter((item) => item.path !== "/");
   const year = new Date().getFullYear();
   const [openGroups, setOpenGroups] = useState<string[]>(["explore"]);
 

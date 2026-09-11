@@ -1,15 +1,18 @@
 import { Container } from "@/components/ui/Container";
 import { Reveal } from "@/components/ui/Reveal";
 import { Button } from "@/components/ui/Button";
-import { StatusBadge } from "@/components/ui/Badge";
+import { Badge, StatusBadge } from "@/components/ui/Badge";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { experiences } from "@/data/mock/experiences";
+import { cmsRepository } from "@/lib/cms";
 import { getPlaceholder } from "@/lib/images";
 import { Seo } from "@/lib/seo";
 import { ImageReveal } from "@/components/ui/ImageReveal";
 import { cn } from "@/lib/cn";
+import type { Experience } from "@/types/experience";
 
 export default function Experiences() {
+  const experiences = cmsRepository.getExperiences();
+  const content = cmsRepository.getPageContent().experiences;
   return (
     <>
       <Seo
@@ -18,10 +21,10 @@ export default function Experiences() {
         path="/experiences"
       />
       <PageHeader
-        eyebrow="The AFhomes Experience"
-        title="Dine. Stay. Escape."
-        lede="Three experiences, one connected AFhomes. Each one is designed around the way you live, connect, and restore."
-        imageSpec={getPlaceholder("resort-hero")}
+        eyebrow={content.eyebrow}
+        title={content.title}
+        lede={content.lede}
+        imageSpec={content.image.src ? content.image : getPlaceholder("resort-hero")}
       />
 
       <div className="py-20 sm:py-28">
@@ -39,7 +42,7 @@ function ExperienceRow({
   experience,
   index,
 }: {
-  experience: (typeof experiences)[number];
+  experience: Experience;
   index: number;
 }) {
   const reversed = index % 2 === 1;
@@ -84,6 +87,7 @@ function ExperienceRow({
           </Reveal>
           <Reveal delay={0.22}>
             <div className="mt-8 flex flex-wrap items-center gap-4">
+              {experience.featured && <Badge tone="gold">Featured experience</Badge>}
               <StatusBadge
                 status={experience.status}
                 label={experience.statusLabel}

@@ -10,4 +10,18 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+          if (id.includes("@supabase")) return "supabase";
+          if (id.includes("motion") || id.includes("framer-motion")) return "motion";
+          if (id.includes("react")) return "react";
+          if (id.includes("zod")) return "validation";
+          return "vendor";
+        },
+      },
+    },
+  },
 });

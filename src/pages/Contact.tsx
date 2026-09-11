@@ -3,11 +3,13 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Reveal } from "@/components/ui/Reveal";
 import { Button } from "@/components/ui/Button";
 import { Seo } from "@/lib/seo";
-import { siteConfig } from "@/data/mock/site";
+import { cmsRepository } from "@/lib/cms";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { getPlaceholder } from "@/lib/images";
 
 export default function Contact() {
+  const siteConfig = cmsRepository.getSiteConfig();
+  const content = cmsRepository.getPageContent().contact;
   return (
     <>
       <Seo
@@ -17,9 +19,9 @@ export default function Contact() {
       />
 
       <PageHeader
-        eyebrow="Contact"
-        title="Let's connect."
-        lede="Questions, reservations, or just to say hello — the AFhomes team would love to hear from you."
+        eyebrow={content.eyebrow}
+        title={content.title}
+        lede={content.lede}
         imageSpec={getPlaceholder("hotel-lounge")}
       />
 
@@ -36,7 +38,7 @@ export default function Contact() {
                   >
                     <p className="label-caps flex items-center gap-3 text-ink-400">
                       <span className="font-display text-gold-600 italic">01</span>
-                      Email
+                      {content.emailLabel}
                     </p>
                     <p className="font-display mt-3 text-2xl font-medium text-navy-900 transition-colors group-hover:text-leaf-700">
                       {siteConfig.email}
@@ -51,7 +53,7 @@ export default function Contact() {
                   >
                     <p className="label-caps flex items-center gap-3 text-ink-400">
                       <span className="font-display text-gold-600 italic">02</span>
-                      Phone
+                      {content.phoneLabel}
                     </p>
                     <p className="font-display mt-3 text-2xl font-medium text-navy-900 transition-colors group-hover:text-leaf-700">
                       {siteConfig.phoneDisplay}
@@ -88,11 +90,10 @@ export default function Contact() {
                 <div className="rounded-[1.25rem] border border-line bg-cream-50 p-8 shadow-soft sm:p-12">
                   <Reveal>
                     <h2 className="font-display text-3xl font-medium text-navy-900 sm:text-4xl">
-                      Send us a message.
+                      {content.formTitle}
                     </h2>
                     <p className="mt-3 mb-10 text-ink-600">
-                      Choose the experience you're interested in and we'll route your inquiry
-                      to the right team.
+                      {content.formLede}
                     </p>
                   </Reveal>
                   <ContactForm />
@@ -109,15 +110,14 @@ export default function Contact() {
           <div className="flex flex-col items-start justify-between gap-8 rounded-[1.25rem] border border-white/10 bg-navy-900/60 p-10 sm:p-14 lg:flex-row lg:items-center">
             <div>
               <h2 className="font-display text-4xl leading-tight font-medium text-balance sm:text-5xl">
-                Looking for a quick answer?
+                {content.quickAnswerTitle}
               </h2>
               <p className="mt-4 max-w-xl text-lg text-cream-200/75">
-                Common questions about the group, the experiences, and the VIP program are
-                answered in our FAQ.
+                {content.quickAnswerLede}
               </p>
             </div>
             <Button to="/faq" variant="outline-light" size="lg" withArrow>
-              Browse the FAQ
+              {content.quickAnswerButton}
             </Button>
           </div>
         </Container>

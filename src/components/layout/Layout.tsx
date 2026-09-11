@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { CursorDot } from "@/components/ui/CursorDot";
 import { EASE } from "@/lib/motion";
+import { CmsMediaSections } from "@/components/ui/CmsMediaSections";
 
 export function Layout() {
   const location = useLocation();
@@ -29,7 +30,9 @@ export function Layout() {
           animate={{ y: 0, opacity: 1, transition: { duration: 0.4, ease: EASE } }}
           exit={{ opacity: 0, transition: { duration: 0.22, ease: "easeOut" } }}
         >
+          <CmsMediaSections page={location.pathname} placement="before-page" />
           <Outlet />
+          <CmsMediaSections page={location.pathname} placement="after-page" />
         </motion.main>
       </AnimatePresence>
       <Footer />

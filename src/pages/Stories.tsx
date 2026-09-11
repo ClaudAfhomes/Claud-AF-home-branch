@@ -13,11 +13,13 @@ import { useAsync } from "@/hooks/useAsync";
 import { storyService } from "@/services/storyService";
 import { cn } from "@/lib/cn";
 import { getPlaceholder } from "@/lib/images";
+import { cmsRepository } from "@/lib/cms";
 
 const PAGE_SIZE = 6;
 
 export default function Stories() {
   const { data: stories, loading, error, retry } = useAsync(() => storyService.getStories());
+  const content = cmsRepository.getPageContent().stories;
   const [category, setCategory] = useState("All");
   const [query, setQuery] = useState("");
   const [visible, setVisible] = useState(PAGE_SIZE);
@@ -40,7 +42,7 @@ export default function Stories() {
     });
   }, [stories, category, query]);
 
-  const featured = stories?.find((story) => story.featured) ?? stories?.[0];
+  const featured = stories?.find((story) => story.featured);
   const gridStories = filtered.filter((story) => story.id !== featured?.id);
   const visibleStories = gridStories.slice(0, visible);
   const hasMore = visible < gridStories.length;
@@ -60,10 +62,10 @@ export default function Stories() {
       />
 
       <PageHeader
-        eyebrow="Stories & Insights"
-        title="Notes from the AFhomes world."
-        lede="Wellness, dining, nature, and the journey behind each experience — written as we build them."
-        imageSpec={getPlaceholder("resort-valley")}
+        eyebrow={content.eyebrow}
+        title={content.title}
+        lede={content.lede}
+        imageSpec={content.image.src ? content.image : getPlaceholder("resort-valley")}
       />
 
       <section className="bg-cream-100 py-20 sm:py-28">

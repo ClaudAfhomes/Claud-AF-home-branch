@@ -2,49 +2,19 @@
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { cn } from "@/lib/cn";
-
-const milestones = [
-  {
-    phase: "Now",
-    name: "ALM Japanese Restaurant",
-    note: "Now Open",
-    ghost: "01",
-    accent: "bg-leaf-500",
-    ring: "ring-leaf-500/30",
-    text: "text-leaf-700",
-    line: "bg-leaf-500/70",
-  },
-  {
-    phase: "November 2026",
-    name: "Smart Wellness Hotel",
-    note: "Grand Opening",
-    ghost: "02",
-    accent: "bg-gold-500",
-    ring: "ring-gold-500/30",
-    text: "text-[#8a6510]",
-    line: "bg-gold-500/70",
-  },
-  {
-    phase: "The Future",
-    name: "Hotspring & Ecofarm Resort",
-    note: "In Development",
-    ghost: "03",
-    accent: "bg-cyan-500",
-    ring: "ring-cyan-500/30",
-    text: "text-cyan-700",
-    line: "bg-cyan-500/70",
-  },
-];
+import { cmsRepository } from "@/lib/cms";
 
 export function DevelopmentJourney() {
+  const content = cmsRepository.getPageContent().home;
+  const milestones = content.journeyMilestones;
   return (
     <section className="bg-cream-200/70 py-24 sm:py-32" aria-labelledby="journey-heading">
       <Container>
         <SectionHeading
           id="journey-heading"
-          eyebrow="The Journey So Far"
-          title="A destination, arriving in chapters."
-          lede="Each AFhomes experience opens when it is ready — thoughtfully, responsibly, and when the time is right."
+          eyebrow={content.journeyEyebrow}
+          title={content.journeyTitle}
+          lede={content.journeyLede}
         />
 
         {/* Desktop — editorial horizontal timeline */}

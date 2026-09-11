@@ -10,4 +10,5 @@ export interface Story {
   content: string[];
   cover: ImageSpec;
   featured?: boolean;
+  archived?: boolean;
 }

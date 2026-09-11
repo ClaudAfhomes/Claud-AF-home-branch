@@ -8,8 +8,11 @@ import { SmartImage } from "@/components/ui/SmartImage";
 import { getPlaceholder } from "@/lib/images";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { EASE } from "@/lib/motion";
+import { cmsRepository } from "@/lib/cms";
 
 export function Hero() {
+  const content = cmsRepository.getPageContent().home;
+  const titleParts = content.heroTitle.split(/(?<=\.)\s+/, 2);
   const ref = useRef<HTMLElement>(null);
   const reducedMotion = useReducedMotion();
   const coarsePointer = useMediaQuery("(pointer: coarse)");
@@ -60,15 +63,15 @@ export function Hero() {
             transition={{ delay: 0.05, duration: 0.8, ease: EASE }}
           >
             <span className="h-px w-10 bg-leaf-400" aria-hidden="true" />
-            Hospitality · Wellness · Dining · Nature — Laguna, Philippines
+            {content.heroBadge}
           </motion.p>
 
           <h1 className="mt-8 max-w-5xl">
             <span className="font-display block text-[clamp(2.75rem,7vw,6.5rem)] leading-[0.95] font-medium text-cream-50 text-balance">
-              <AnimatedText text="Amazing & Fun." delay={0.15} />
+              <AnimatedText text={titleParts[0]} delay={0.15} />
             </span>
             <span className="font-display mt-4 block text-[clamp(1.75rem,4vw,3.5rem)] leading-[1.05] font-light text-cream-100 text-balance">
-              <AnimatedText text="Your Home Away From Home." delay={0.3} />
+              <AnimatedText text={titleParts[1] ?? ""} delay={0.3} />
             </span>
           </h1>
 
@@ -78,8 +81,7 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45, duration: 0.8, ease: EASE }}
           >
-            Hospitality, wellness, dining and nature brought together in experiences
-            designed for connection, restoration and memorable moments.
+            {content.heroLede}
           </motion.p>
 
           <motion.div
@@ -89,10 +91,10 @@ export function Hero() {
             transition={{ delay: 0.6, duration: 0.8, ease: EASE }}
           >
             <Button to="/experiences" variant="accent" size="lg" withArrow>
-              Explore AFhomes
+              {content.heroPrimaryCta}
             </Button>
             <Button to="/vip" variant="outline-light" size="lg" className="border-cream-50/50">
-              Discover VIP Privilege
+              {content.heroSecondaryCta}
             </Button>
           </motion.div>
         </Container>

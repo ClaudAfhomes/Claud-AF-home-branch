@@ -1,7 +1,7 @@
 import { apiClient, isApiEnabled } from "./client";
 import { mockRead } from "@/lib/mock";
+import { cmsRepository } from "@/lib/cms";
 import type { Story } from "@/types/story";
-import { stories, getStoryBySlug, getStoryCategories } from "@/data/mock/stories";
 
 /**
  * Stories API — conceptual contract:
@@ -12,14 +12,17 @@ import { stories, getStoryBySlug, getStoryCategories } from "@/data/mock/stories
 export const storiesApi = {
   getStories(): Promise<Story[]> {
     if (isApiEnabled) return apiClient.get<Story[]>("/api/stories");
-    return mockRead(() => [...stories]);
+    return mockRead(() => cmsRepository.getStories());
   },
   getStoryBySlug(slug: string): Promise<Story | undefined> {
     if (isApiEnabled) return apiClient.get<Story>(`/api/stories/${slug}`);
-    return mockRead(() => getStoryBySlug(slug), 250);
+    return mockRead(() => cmsRepository.getStories().find((story) => story.slug === slug), 250);
   },
   getCategories(): Promise<string[]> {
     if (isApiEnabled) return apiClient.get<string[]>("/api/stories/categories");
-    return mockRead(() => getStoryCategories(), 150);
+    return mockRead(
+      () => Array.from(new Set(cmsRepository.getStories().map((story) => story.category))),
+      150,
+    );
   },
 };

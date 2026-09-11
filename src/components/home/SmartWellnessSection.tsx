@@ -5,49 +5,13 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { SmartImage } from "@/components/ui/SmartImage";
 import { Button } from "@/components/ui/Button";
 import { getPlaceholder } from "@/lib/images";
-
-const rooms = [
-  { value: "18", label: "Rooms in total" },
-  { value: "1", label: "Signature Suite" },
-  { value: "17", label: "Smart Wellness Rooms" },
-];
-
-const features = [
-  {
-    title: "Non-contact sleep intelligence",
-    line: "Sleep is observed without wearables or contact — so nothing comes between a guest and their rest.",
-  },
-  {
-    title: "mmWave sensor support",
-    line: "Gentle sensing observes breathing and sleep cycles through the night, quietly and without intrusion.",
-  },
-  {
-    title: "Adaptive environmental support",
-    line: "The room responds to the night, adjusting its environment around the guest's recovery.",
-  },
-  {
-    title: "Negative Ion Refreshers",
-    line: "The bedroom air is refreshed by negative ions, supporting a lighter, cleaner atmosphere.",
-  },
-  {
-    title: "Smart AQI monitoring",
-    line: "The air a guest breathes is watched quietly in the background of every stay.",
-  },
-  {
-    title: "Atmospheric oxygen enrichment",
-    line: "Oxygen enrichment is part of the room's quiet support for deeper restoration.",
-  },
-  {
-    title: "Smart Sleep Reports",
-    line: "Guests receive insight into their sleep — designed to inform, not to overwhelm.",
-  },
-  {
-    title: "Wellness guest analytics",
-    line: "Wellness-oriented analytics shape the stay while keeping the experience calm and personal.",
-  },
-];
+import { cmsRepository } from "@/lib/cms";
+import { useCmsRevision } from "@/hooks/useCmsRevision";
 
 export function SmartWellnessSection() {
+  useCmsRevision();
+  const content = cmsRepository.getPageContent().home;
+  const experience = cmsRepository.getExperiences().find((item) => item.id === "smart-wellness-hotel");
   return (
     <section
       className="relative overflow-hidden bg-pine-950 py-24 text-cream-100 sm:py-32 lg:py-36"
@@ -70,14 +34,14 @@ export function SmartWellnessSection() {
             <SectionHeading
               id="smart-wellness-heading"
               tone="dark"
-              eyebrow="Smart Wellness Hotel · Alaminos, Laguna"
-              title="Sleep isn't just rest. It's recovery."
-              lede="An upscale wellness-oriented hotel where rest is designed as carefully as hospitality — 18 rooms planned around how people truly sleep, and a room that becomes part of the wellness experience."
+              eyebrow={content.smartWellnessEyebrow}
+              title={content.smartWellnessTitle}
+              lede={content.smartWellnessLede}
             />
 
             <Reveal delay={0.15}>
               <div className="mt-12 grid grid-cols-3 gap-4 border-t border-white/10 pt-8">
-                {rooms.map((room) => (
+                {content.smartWellnessRooms.map((room) => (
                   <div key={room.label}>
                     <CountUp
                       value={Number(room.value)}
@@ -98,7 +62,7 @@ export function SmartWellnessSection() {
                     className="h-1.5 w-1.5 animate-dot-pulse rounded-full bg-gold-400"
                     aria-hidden="true"
                   />
-                  Grand Opening — November 2026
+                  {experience?.statusLabel ?? content.smartWellnessStatus}
                 </span>
                 <Button
                   to="/experiences/smart-wellness-hotel"
@@ -106,7 +70,7 @@ export function SmartWellnessSection() {
                   size="md"
                   withArrow
                 >
-                  Discover Smart Wellness
+                  {content.smartWellnessButton}
                 </Button>
               </div>
             </Reveal>
@@ -118,7 +82,7 @@ export function SmartWellnessSection() {
               <Reveal y={40}>
                 <div className="overflow-hidden rounded-[1.25rem]" data-cursor="view">
                   <SmartImage
-                    spec={getPlaceholder("hotel-room")}
+                    spec={experience?.image ?? getPlaceholder("hotel-room")}
                     className="aspect-[4/3]"
                     priority
                     sizes="(max-width: 768px) 100vw, 44vw"
@@ -131,7 +95,7 @@ export function SmartWellnessSection() {
               <Reveal y={30}>
                 <div className="overflow-hidden rounded-2xl">
                   <SmartImage
-                    spec={getPlaceholder("hotel-room")}
+                    spec={experience?.image ?? getPlaceholder("hotel-room")}
                     className="aspect-[4/3]"
                     sizes="100vw"
                   />
@@ -140,7 +104,7 @@ export function SmartWellnessSection() {
             </div>
 
             <ol className="relative z-10 mt-12 space-y-7 border-t border-white/10 pt-12">
-              {features.map((feature, index) => (
+              {content.smartWellnessFeatures.map((feature, index) => (
                 <li key={feature.title}>
                   <Reveal delay={index * 0.04} y={28}>
                     <div className="group flex gap-5">

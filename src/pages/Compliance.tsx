@@ -5,9 +5,11 @@ import { Reveal } from "@/components/ui/Reveal";
 import { PlaceholderNotice } from "@/components/ui/PlaceholderNotice";
 import { Button } from "@/components/ui/Button";
 import { Seo } from "@/lib/seo";
-import { siteConfig } from "@/data/mock/site";
+import { cmsRepository } from "@/lib/cms";
 
 export default function Compliance() {
+  const siteConfig = cmsRepository.getSiteConfig();
+  const content = cmsRepository.getPageContent().compliance;
   return (
     <>
       <Seo
@@ -17,9 +19,9 @@ export default function Compliance() {
       />
 
       <PageHeader
-        eyebrow="Compliance & Transparency"
-        title="Transparent by design."
-        lede="AFHOMES operates with openness. Official corporate, licensing, and regulatory documentation is published here as it becomes available."
+        eyebrow={content.eyebrow}
+        title={content.title}
+        lede={content.lede}
       />
 
       {/* Intro + important notices */}
@@ -30,8 +32,8 @@ export default function Compliance() {
               <SectionHeading
                 id="compliance-intro-heading"
                 eyebrow="Our Commitment"
-                title="Hospitality and resort development, done honestly."
-                lede="AFHOMES is a hospitality and resort developer and operator. Our work is guided by responsible, phase-by-phase development with environmental and governmental compliance at every step."
+                title={content.commitmentTitle}
+                lede={content.commitmentLede}
               />
 
               <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -39,8 +41,7 @@ export default function Compliance() {
                   <div className="h-full rounded-2xl border border-coral-500/30 bg-coral-100/40 p-7">
                     <p className="label-caps text-coral-700">Not an investment</p>
                     <p className="mt-3 text-sm leading-relaxed text-ink-700">
-                      AFHOMES does not offer real estate investments, timeshares, club shares,
-                      or securities.
+                      {content.notInvestment}
                     </p>
                   </div>
                 </Reveal>
@@ -48,8 +49,7 @@ export default function Compliance() {
                   <div className="h-full rounded-2xl border border-gold-500/30 bg-gold-100/50 p-7">
                     <p className="label-caps text-[#8a6510]">Verified payments only</p>
                     <p className="mt-3 text-sm leading-relaxed text-ink-700">
-                      Payments must be made directly to the AFhomes Finance Department through
-                      official and verified channels.
+                      {content.verifiedPayments}
                     </p>
                   </div>
                 </Reveal>
@@ -147,10 +147,7 @@ export default function Compliance() {
               <div id="privacy" className="h-full rounded-[1.25rem] border border-line bg-cream-50 p-8 shadow-soft sm:p-10">
                 <h2 className="font-display text-3xl font-medium text-navy-900">Privacy</h2>
                 <p className="mt-4 leading-relaxed text-ink-600">
-                  The AFhomes Privacy Policy will describe how we collect, use, and protect
-                  personal information across our experiences and website. It will be
-                  finalized and published here before the Smart Wellness Hotel welcomes its
-                  first guests.
+                  {content.privacy}
                 </p>
               </div>
             </Reveal>
@@ -158,9 +155,7 @@ export default function Compliance() {
               <div id="terms" className="h-full rounded-[1.25rem] border border-line bg-cream-50 p-8 shadow-soft sm:p-10">
                 <h2 className="font-display text-3xl font-medium text-navy-900">Terms</h2>
                 <p className="mt-4 leading-relaxed text-ink-600">
-                  Terms of use for this website and terms for AFhomes services and the VIP
-                  Privilege Program will be documented here once finalized. Everything
-                  published will follow the AFhomes principles of honesty and transparency.
+                  {content.terms}
                 </p>
               </div>
             </Reveal>
