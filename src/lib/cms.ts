@@ -57,10 +57,13 @@ function writeCache(store: CachedStore) {
 }
 
 function readCachedDocument<T>(key: DocumentKey, fallback: T): T {
-  if (!supabase) return structuredClone((localValue(key) ?? fallback) as T);
+  const candidate = !supabase ? localValue(key) ?? fallback : readCache().documents[key] ?? fallback;
 
-  const store = readCache();
-  return structuredClone(((store.documents[key] ?? fallback) as T));
+  try {
+    return structuredClone(validateDocument(key, candidate) as T);
+  } catch {
+    return structuredClone(fallback);
+  }
 }
 
 function applySavedRows(rows: Array<{ key: string; value: unknown; revision: number }>) {
