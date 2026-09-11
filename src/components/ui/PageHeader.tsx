@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { Eyebrow } from "@/components/ui/Eyebrow";
-import { SmartImage } from "@/components/ui/SmartImage";
+import { CmsHeroMedia, useCmsHeroMedia } from "@/components/ui/CmsHeroMedia";
 import { motion } from "motion/react";
 import type { ImageSpec } from "@/lib/images";
 import { EASE } from "@/lib/motion";
@@ -27,27 +27,23 @@ export function PageHeader({
   children,
   ...props
 }: PageHeaderProps) {
+  const cmsHeroMedia = useCmsHeroMedia();
   return (
     <header
       className={cn("relative overflow-hidden bg-navy-950 text-cream-50", className)}
       {...props}
     >
-      {imageSpec && (
+      {(imageSpec || cmsHeroMedia) && (
         <motion.div
           className="absolute inset-0"
           initial={{ scale: 1.08 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.6, ease: EASE }}
         >
-          <SmartImage
-            spec={imageSpec}
-            priority
-            className="h-full w-full object-cover opacity-40"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-navy-950/80 via-navy-950/60 to-navy-950" />
+          <CmsHeroMedia fallback={imageSpec} />
         </motion.div>
       )}
-      {!imageSpec && (
+      {!imageSpec && !cmsHeroMedia && (
         <div className="absolute inset-0 bg-gradient-to-b from-navy-900 to-navy-950" aria-hidden="true" />
       )}
 

@@ -4,7 +4,7 @@ import { Container } from "@/components/ui/Container";
 import { AnimatedText } from "@/components/ui/AnimatedText";
 import { Button } from "@/components/ui/Button";
 import { ScrollIndicator } from "@/components/ui/ScrollIndicator";
-import { SmartImage } from "@/components/ui/SmartImage";
+import { CmsHeroMedia } from "@/components/ui/CmsHeroMedia";
 import { getPlaceholder } from "@/lib/images";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { EASE } from "@/lib/motion";
@@ -38,17 +38,8 @@ export function Hero() {
         style={allowParallax ? { y: parallaxY, scale: parallaxScale } : undefined}
         aria-hidden="true"
       >
-        <SmartImage
-          spec={heroImage}
-          priority
-          className="h-full w-full object-cover object-center"
-          sizes="100vw"
-        />
+        <CmsHeroMedia fallback={heroImage} />
       </motion.div>
-      <div
-        className="absolute inset-0 bg-gradient-to-t from-pine-950 via-pine-950/55 to-pine-900/20"
-        aria-hidden="true"
-      />
 
       {/* Content */}
       <motion.div

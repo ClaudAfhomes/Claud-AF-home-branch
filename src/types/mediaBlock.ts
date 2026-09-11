@@ -1,6 +1,8 @@
 export type CmsMediaKind = "image" | "video";
-export type CmsMediaPlacement = "before-page" | "after-page";
+export type CmsMediaPlacement = "page-background" | "before-page" | "after-page";
 export type CmsMediaWidth = "content" | "wide" | "full";
+export type CmsMediaPosition = "center" | "top" | "bottom";
+export type CmsMediaOverlay = "light" | "medium" | "strong";
 
 export interface CmsMediaBlock {
   id: string;
@@ -12,6 +14,8 @@ export interface CmsMediaBlock {
   caption: string;
   width: CmsMediaWidth;
   fit: "cover" | "contain";
+  position?: CmsMediaPosition;
+  overlay?: CmsMediaOverlay;
   autoplay?: boolean;
   loop?: boolean;
   muted?: boolean;

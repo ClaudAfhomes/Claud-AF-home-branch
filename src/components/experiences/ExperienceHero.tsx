@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
-import { SmartImage } from "@/components/ui/SmartImage";
+import { CmsHeroMedia } from "@/components/ui/CmsHeroMedia";
 import { StatusBadge } from "@/components/ui/Badge";
 import { cn } from "@/lib/cn";
 import type { Experience } from "@/types/experience";
@@ -27,17 +27,8 @@ export function ExperienceHero({ experience }: ExperienceHeroProps) {
         transition={{ duration: 1.8, ease: EASE }}
         aria-hidden="true"
       >
-        <SmartImage
-          spec={experience.image}
-          priority
-          className="h-full w-full object-cover"
-          sizes="100vw"
-        />
+        <CmsHeroMedia fallback={experience.image} />
       </motion.div>
-      <div
-        className="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/65 to-navy-950/30"
-        aria-hidden="true"
-      />
 
       <Container className="relative pb-20 pt-36 sm:pb-28 sm:pt-44">
         <motion.div
