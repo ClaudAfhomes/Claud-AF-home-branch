@@ -12,6 +12,7 @@ import { BackupPanel } from "@/components/admin/BackupPanel";
 import { InquiryInbox } from "@/components/admin/InquiryInbox";
 import { MediaLibrary } from "@/components/admin/MediaLibrary";
 import { MediaSectionsEditor } from "@/components/admin/MediaSectionsEditor";
+import { VisualPageBuilder } from "@/components/admin/VisualPageBuilder";
 import type { ImageSpec } from "@/lib/images";
 import type { SiteConfig } from "@/types/site";
 import type { Experience, ExperienceStatus } from "@/types/experience";
@@ -128,9 +129,9 @@ function PagesEditor({ notify }: { notify: (message: string) => void }) {
   const [content, setContent] = useAdminDraft(() => cmsRepository.getPageContent());
   const updateSection = (section: keyof PageContent, value: unknown) => setContent((current) => ({ ...current, [section]: value } as PageContent));
 
-  return <Section title="Website pages" description="Edit every headline, label, paragraph, list, button, and image used across the public website." onSave={async () => { await cmsRepository.savePageContent(content); notify("Page content saved"); }}><div className="mt-8 space-y-8">
+  return <div className="space-y-12"><VisualPageBuilder /><Section title="Existing website pages" description="Edit every headline, label, paragraph, list, button, and image used across the original public pages." onSave={async () => { await cmsRepository.savePageContent(content); notify("Page content saved"); }}><div className="mt-8 space-y-8">
     {(Object.keys(content) as (keyof PageContent)[]).map((section) => <PagePanel key={section} title={`${friendlyLabel(String(section))} page`}><ContentFields value={content[section]} onChange={(value) => updateSection(section, value)} /></PagePanel>)}
-  </div></Section>;
+  </div></Section></div>;
 }
 
 function friendlyLabel(value: string) {
@@ -194,6 +195,4 @@ function StoryForm({ story, onCancel, onSave }: { story: Story; onCancel: () => 
   const update = <K extends keyof Story>(key: K, value: Story[K]) => setDraft((current) => ({ ...current, [key]: value }));
   return <div className="fixed inset-0 z-100 overflow-y-auto bg-navy-950/70 px-4 py-8"><form className="mx-auto max-w-3xl border border-line bg-cream-50 p-6 shadow-2xl sm:p-10" onSubmit={(event) => { event.preventDefault(); onSave(draft); }}><div className="flex items-center justify-between border-b border-line pb-6"><h3 className="font-display text-3xl font-medium text-navy-900">{draft.id ? "Edit story" : "New story"}</h3><button type="button" className="text-sm font-semibold text-ink-500" onClick={onCancel}>Close</button></div><div className="mt-7 grid gap-5 sm:grid-cols-2"><div className="sm:col-span-2"><Field label="Title" value={draft.title} onChange={(value) => update("title", value)} /></div><Field label="Category" value={draft.category} onChange={(value) => update("category", value)} /><Field label="Date" value={draft.date} onChange={(value) => update("date", value)} /><div className="sm:col-span-2"><Field label="URL slug" value={draft.slug} onChange={(value) => update("slug", slugify(value))} /></div><div className="sm:col-span-2"><Field label="Excerpt" value={draft.excerpt} onChange={(value) => update("excerpt", value)} area /></div><div className="sm:col-span-2"><Field label="Paragraphs (blank line between paragraphs)" value={draft.content.join("\n\n")} onChange={(value) => update("content", value.split(/\n\s*\n/))} area /></div><ImageField label="Cover image" image={draft.cover} onChange={(image) => update("cover", image)} /></div><div className="mt-8 flex justify-end gap-3 border-t border-line pt-6"><Button type="button" variant="outline" size="md" onClick={onCancel}>Cancel</Button><Button type="submit" variant="accent" size="md">Save story</Button></div></form></div>;
 }
-
-
 

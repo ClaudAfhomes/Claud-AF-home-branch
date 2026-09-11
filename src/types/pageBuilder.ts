@@ -1,0 +1,33 @@
+export type PageStatus = "draft" | "published";
+export type BlockType = "hero" | "rich-text" | "image" | "gallery" | "video" | "two-column" | "features" | "services" | "testimonials" | "faq" | "cta" | "contact" | "map" | "divider";
+
+export interface CmsPage {
+  id: string;
+  slug: string;
+  title: string;
+  seo_title: string;
+  seo_description: string;
+  status: PageStatus;
+  created_at?: string;
+  updated_at?: string;
+  published_at?: string | null;
+}
+
+export interface CmsPageSection {
+  id: string;
+  page_id: string;
+  block_type: BlockType;
+  content: Record<string, unknown>;
+  sort_order: number;
+  is_visible: boolean;
+}
+
+export interface PublishedPage {
+  id: string;
+  slug: string;
+  title: string;
+  seo_title: string;
+  seo_description: string;
+  published_at: string;
+  sections: CmsPageSection[];
+}

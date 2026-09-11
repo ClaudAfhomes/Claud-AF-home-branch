@@ -20,6 +20,7 @@ const StoryDetail = lazy(() => import("@/pages/StoryDetail"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
 const Compliance = lazy(() => import("@/pages/Compliance"));
 const Contact = lazy(() => import("@/pages/Contact"));
+const CmsPage = lazy(() => import("@/pages/CmsPage"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
 const AdminForgotPassword = lazy(() => import("@/pages/AdminForgotPassword"));
@@ -62,6 +63,7 @@ export const router = createBrowserRouter([
       { path: "faq", element: page(FAQ) },
       { path: "compliance", element: page(Compliance) },
       { path: "contact", element: page(Contact) },
+      { path: ":slug", element: page(CmsPage) },
       { path: "*", element: page(NotFound) },
     ],
   },

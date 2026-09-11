@@ -25,6 +25,15 @@ In a new Supabase project, run these files in the SQL Editor:
 2. `supabase-validation.sql`
 3. `supabase-platform.sql`
 
+Then apply the versioned migrations in `supabase/migrations/`. The visual page
+builder migration creates draft and published page tables, ordered reusable
+sections, media metadata, navigation, site settings, and their RLS policies.
+
+```sh
+npx supabase link --project-ref tubmcobqlwvtdilvstbt
+npx supabase db push --linked
+```
+
 Create the production administrator in Supabase Authentication, then run `supabase-admin.sql` to add that account to `public.admin_users`.
 
 ## Deploy public inquiries
@@ -71,6 +80,8 @@ For detailed authentication, email, and local-development guidance, see
 3. Add the two `VITE_SUPABASE_*` variables shown above. They are public browser
    configuration, not secrets; never add `SUPABASE_SECRET_KEYS` or
    `SUPABASE_SERVICE_ROLE_KEY` to Vercel.
+
+The visual CMS requires no additional Vercel variables.
 4. Deploy once, attach the production domain, then update `ALLOWED_ORIGINS` and
    Supabase Auth URL Configuration to that exact HTTPS domain.
 5. Redeploy and test a direct visit (not client navigation) to `/contact`,

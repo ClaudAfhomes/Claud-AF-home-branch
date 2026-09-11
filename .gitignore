@@ -26,6 +26,7 @@ npm-debug.log*
 *.sln
 *.sw?
 .vercel
+supabase/.temp/
 
 # Browser test artifacts
 playwright-report/

@@ -91,7 +91,19 @@ export async function uploadMedia(file: File): Promise<string> {
       upsert: false,
     });
     if (error) throw new Error(error.message);
-    return client.storage.from("cms-media").getPublicUrl(path).data.publicUrl;
+    const publicUrl = client.storage.from("cms-media").getPublicUrl(path).data.publicUrl;
+    const { error: assetError } = await client.from("cms_media_assets").insert({
+      storage_path: path,
+      public_url: publicUrl,
+      name: file.name,
+      media_type: kind,
+      size_bytes: file.size,
+    });
+    if (assetError && assetError.code !== "42P01") {
+      await client.storage.from("cms-media").remove([path]);
+      throw new Error(assetError.message);
+    }
+    return publicUrl;
   }
 
   const src = await new Promise<string>((resolve, reject) => {
@@ -127,6 +139,8 @@ export async function deleteMedia(file: Pick<LocalMedia, "id" | "name">): Promis
   if (supabase) {
     const { error } = await supabase.storage.from("cms-media").remove([file.name]);
     if (error) throw new Error(error.message);
+    const { error: assetError } = await supabase.from("cms_media_assets").delete().eq("storage_path", file.name);
+    if (assetError && assetError.code !== "42P01") throw new Error(`File deleted, but its library record could not be removed: ${assetError.message}`);
     return;
   }
 

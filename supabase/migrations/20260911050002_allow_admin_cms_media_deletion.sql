@@ -1,0 +1,1 @@
+-- Admin Storage deletion policy already applied to the remote project.
