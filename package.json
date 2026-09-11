@@ -3,13 +3,17 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "package:source": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/package-source.ps1",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
-    "test": "playwright test"
+    "test": "playwright test",
+    "deploy:check": "npm run lint && npm run build && npm run test"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0",

@@ -1,6 +1,21 @@
-# Database deployment checklist
+# Supabase production deployment
 
-This database is prepared for a future hosted deployment while the application remains local-first today.
+The frontend already uses Supabase for shared CMS content, administrator
+authentication and password recovery, inquiry management, and media uploads.
+Before deploying the frontend, configure the following hosting environment
+variables. Use a publishable key only; never expose a secret or service-role
+key in browser code.
+
+```env
+VITE_SUPABASE_URL=https://tubmcobqlwvtdilvstbt.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_replace_me
+```
+
+Set both variables in Vercel for **Production**, **Preview**, and
+**Development**. Redeploy after changing a `VITE_` variable because Vite embeds
+these public values during the build. Leave `VITE_API_BASE_URL` unset unless a
+separate AFhomes API has actually been deployed; Supabase-powered CMS, auth,
+media, and inquiries do not require it.
 
 ## Provision the database
 
@@ -14,16 +29,68 @@ Create the production administrator in Supabase Authentication, then run `supaba
 
 ## Deploy public inquiries
 
-Deploy `supabase/functions/submit-inquiry/index.ts` as the `submit-inquiry` Edge Function. Set these function secrets:
+Link the CLI to the hosted project and deploy the function. The checked-in
+`supabase/config.toml` makes this public form endpoint reachable without a user
+JWT; origin validation, rate limiting, and payload validation are enforced by
+the function itself.
 
-- `ALLOWED_ORIGINS`
+```sh
+npx supabase login
+npx supabase link --project-ref tubmcobqlwvtdilvstbt
+npx supabase functions deploy submit-inquiry
+```
+
+Set these function secrets in Supabase (not Vercel):
+
+- `ALLOWED_ORIGINS` containing comma-separated exact origins, without trailing
+  slashes (for example `https://afhomes.com.ph,https://www.afhomes.com.ph`)
 - `EMAIL_TO` (temporary inbox, e.g. `claudmarsjimenez.afhomes@gmail.com`)
 - `EMAIL_FROM` (for Gmail SMTP, use the authenticated Gmail address or a verified Gmail alias)
 - either `RESEND_API_KEY` for the Resend email provider, or `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, and `SMTP_PASS` for Gmail/SMTP delivery
 
 Hosted Edge Functions receive `SUPABASE_URL` and server credentials automatically; do not add them to frontend environment files. The function performs origin checks, payload validation, duplicate protection, and rate limiting before storing the inquiry and optionally sending the email notification to the configured inbox.
 
+```sh
+npx supabase secrets set ALLOWED_ORIGINS=https://afhomes.com.ph,https://www.afhomes.com.ph EMAIL_TO=claudmarsjimenez.afhomes@gmail.com
+npx supabase secrets list
+```
+
+Add a specific Vercel preview URL to `ALLOWED_ORIGINS` when testing a preview.
+Do not use a wildcard: preview deployments are public input surfaces too.
+
+Configure Supabase Authentication URL settings with the production Site URL and
+the exact `/admin/auth/callback` and `/admin/reset-password` redirect URLs.
+For detailed authentication, email, and local-development guidance, see
+[`SUPABASE_SETUP.md`](../SUPABASE_SETUP.md).
+
+## Configure Vercel
+
+1. Import the repository into Vercel and keep the project root at the repository root.
+2. Vercel will use Node 22, run `npm run build`, and publish `dist/` from the
+   checked-in `vercel.json`.
+3. Add the two `VITE_SUPABASE_*` variables shown above. They are public browser
+   configuration, not secrets; never add `SUPABASE_SECRET_KEYS` or
+   `SUPABASE_SERVICE_ROLE_KEY` to Vercel.
+4. Deploy once, attach the production domain, then update `ALLOWED_ORIGINS` and
+   Supabase Auth URL Configuration to that exact HTTPS domain.
+5. Redeploy and test a direct visit (not client navigation) to `/contact`,
+   `/stories`, `/afhomes-admin`, and `/admin/reset-password`. The SPA rewrite in
+   `vercel.json` keeps these routes working on refresh.
+
+The generated `/assets/*` files receive immutable one-year caching because
+Vite fingerprints their filenames. HTML and public metadata retain Vercel's
+normal revalidation behavior. Baseline response headers disable MIME sniffing
+and unused camera, microphone, and geolocation capabilities.
+
 ## Verify before launch
+
+Run the local production gate first:
+
+```sh
+npm ci
+npx playwright install chromium
+npm run deploy:check
+```
 
 - Confirm the six `cms_documents` keys can be read anonymously.
 - Confirm an unlisted authenticated user cannot update CMS documents or read inquiries.
@@ -31,5 +98,7 @@ Hosted Edge Functions receive `SUPABASE_URL` and server credentials automaticall
 - Submit the same inquiry twice and confirm the same request ID is returned without a duplicate row.
 - Exceed five submissions from one origin address within an hour and confirm the function returns HTTP 429.
 - Upload an allowed image and reject unsupported types or files larger than 5 MB at the storage policy boundary.
-
-The current frontend is intentionally not connected to this database. A later integration should add Supabase-backed adapters for CMS, auth, inquiries, and media, while retaining the local adapters for development.
+- Confirm `/robots.txt` and `/sitemap.xml` return their actual files rather than
+  the SPA HTML.
+- Confirm browser developer tools show no mixed-content, CORS, or failed
+  Supabase requests on the production domain.
