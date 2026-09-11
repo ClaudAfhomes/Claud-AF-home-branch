@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import type { BlockType, CmsPage, CmsPageSection, PublishedPage } from "@/types/pageBuilder";
+import type { BlockType, CmsPage, CmsPageSection, CmsPageVersion, PublishedPage } from "@/types/pageBuilder";
 
 function client() {
   if (!supabase) throw new Error("Supabase is required for the visual page builder.");
@@ -12,9 +12,9 @@ export const blockLabels: Record<BlockType, string> = {
 
 export function defaultBlockContent(type: BlockType): Record<string, unknown> {
   const defaults: Record<BlockType, Record<string, unknown>> = {
-    hero: { eyebrow: "Welcome", title: "New page", text: "Add an introduction.", buttonLabel: "Learn more", buttonHref: "/contact", mediaUrl: "", mediaType: "image", position: "center", overlay: "medium" },
+    hero: { eyebrow: "Welcome", title: "New page", text: "Add an introduction.", buttonLabel: "Learn more", buttonHref: "/contact", mediaUrl: "", mediaAlt: "", mediaType: "image", position: "center", overlay: "medium" },
     "rich-text": { heading: "Section heading", body: "Add your content here." },
-    image: { url: "", alt: "", caption: "", aspectRatio: "16/9", fit: "cover", position: "center" },
+    image: { url: "", alt: "", caption: "", width: "wide", aspectRatio: "16/9", fit: "cover", position: "center" },
     gallery: { heading: "Gallery", items: [{ url: "", alt: "", caption: "" }] }, video: { url: "", caption: "", autoplay: false, loop: false },
     "two-column": { heading: "Section heading", body: "Add your content here.", imageUrl: "", imageAlt: "", imageSide: "right" },
     features: { heading: "Features", items: [{ title: "Feature", text: "Describe this feature." }] },
@@ -47,6 +47,17 @@ export async function loadDraftSections(pageId: string): Promise<CmsPageSection[
 }
 
 export async function saveCmsPage(page: CmsPage, sections: CmsPageSection[]): Promise<void> {
+  if (!page.title.trim() || page.title.length > 200) throw new Error("Page title must be between 1 and 200 characters.");
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(page.slug)) throw new Error("URL slug must use lowercase words separated by hyphens.");
+  if (page.seo_title.length > 200 || page.seo_description.length > 500) throw new Error("SEO title or description is too long.");
+  for (const section of sections) {
+    if (!(section.block_type in blockLabels)) throw new Error("A page section has an unsupported block type.");
+    const encoded = JSON.stringify(section.content);
+    if (new Blob([encoded]).size > 1024 * 1024) throw new Error(`${blockLabels[section.block_type]} contains too much content.`);
+    for (const [key, value] of Object.entries(section.content)) {
+      if (/url$/i.test(key) && typeof value === "string" && value && !/^(?:https?:\/\/|\/)/.test(value)) throw new Error(`${blockLabels[section.block_type]}: ${key} must be an HTTPS URL or local path.`);
+    }
+  }
   const { error: pageError } = await client().from("cms_pages").update({ slug: page.slug, title: page.title, seo_title: page.seo_title, seo_description: page.seo_description, updated_at: new Date().toISOString() }).eq("id", page.id);
   if (pageError) throw new Error(pageError.message);
   const rows = sections.map((section, index) => ({ ...section, page_id: page.id, sort_order: index, updated_at: new Date().toISOString() }));
@@ -73,6 +84,17 @@ export async function publishCmsPage(id: string) {
 
 export async function unpublishCmsPage(id: string) {
   const { error } = await client().rpc("unpublish_cms_page", { target_page_id: id });
+  if (error) throw new Error(error.message);
+}
+
+export async function listCmsPageVersions(pageId: string): Promise<CmsPageVersion[]> {
+  const { data, error } = await client().from("cms_page_versions").select("id,page_id,title,created_at").eq("page_id", pageId).order("created_at", { ascending: false }).limit(20);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as CmsPageVersion[];
+}
+
+export async function restoreCmsPageVersion(id: number) {
+  const { error } = await client().rpc("restore_cms_page_version", { target_version_id: id });
   if (error) throw new Error(error.message);
 }
 

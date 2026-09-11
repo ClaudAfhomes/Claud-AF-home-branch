@@ -82,6 +82,18 @@ For detailed authentication, email, and local-development guidance, see
    `SUPABASE_SERVICE_ROLE_KEY` to Vercel.
 
 The visual CMS requires no additional Vercel variables.
+
+## Visual page builder
+
+The builder is available under **Admin → Pages**. New published pages use their
+slug at the website root (for example, `services` publishes at `/services`). To
+replace an original page with a builder-managed layout, use its reserved slug:
+`home`, `vip`, `about`, `experiences`, `stories`, `faq`, `compliance`, or
+`contact`. Unpublishing it immediately restores the original page.
+
+Publishing creates a public snapshot and retains the prior published snapshot
+in `cms_page_versions`. Draft tables are admin-only; anonymous visitors can
+read only the separate published snapshot tables.
 4. Deploy once, attach the production domain, then update `ALLOWED_ORIGINS` and
    Supabase Auth URL Configuration to that exact HTTPS domain.
 5. Redeploy and test a direct visit (not client navigation) to `/contact`,

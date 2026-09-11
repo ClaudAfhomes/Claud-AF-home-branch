@@ -46,9 +46,7 @@ const menuItem: Variants = {
 export function Navbar() {
   const siteConfig = cmsRepository.getSiteConfig();
   const experiences = cmsRepository.getExperiences();
-  const desktopLinks = siteConfig.nav.main.filter((item) =>
-    ["vip", "about", "stories", "faq", "contact"].includes(item.path.replace("/", "")),
-  );
+  const desktopLinks = siteConfig.nav.main.filter((item) => item.path !== "/" && item.path !== "/experiences");
   const location = useLocation();
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const [scrolled, setScrolled] = useState(false);

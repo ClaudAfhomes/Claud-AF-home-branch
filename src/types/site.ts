@@ -27,6 +27,15 @@ export interface SiteConfig {
   email: string;
   phone: string;
   phoneDisplay: string;
+  footerEyebrow: string;
+  footerTitle: string;
+  footerNoticeTitle: string;
+  footerNoticeBody: string;
+  footerCopyright: string;
+  footerExploreLabel: string;
+  footerExperiencesLabel: string;
+  footerContactLabel: string;
+  footerOfficesLabel: string;
   offices: OfficeAddress[];
   nav: {
     main: NavItem[];

@@ -31,3 +31,10 @@ export interface PublishedPage {
   published_at: string;
   sections: CmsPageSection[];
 }
+
+export interface CmsPageVersion {
+  id: number;
+  page_id: string;
+  title: string;
+  created_at: string;
+}

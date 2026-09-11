@@ -68,17 +68,13 @@ export function Footer() {
       <Container className="pt-16 pb-10 sm:pt-24">
         {/* Brand statement */}
         <div className="max-w-3xl">
-          <p className="label-caps text-gold-400">AFhomes</p>
-          <p className="font-display mt-4 text-4xl leading-[1.05] font-medium text-balance text-cream-50 sm:text-5xl lg:text-6xl">
-            Amazing &amp; Fun.
-            <br />
-            Your Home Away From Home.
-          </p>
+          <p className="label-caps text-gold-400">{siteConfig.footerEyebrow}</p>
+          <p className="font-display mt-4 whitespace-pre-line text-4xl leading-[1.05] font-medium text-balance text-cream-50 sm:text-5xl lg:text-6xl">{siteConfig.footerTitle}</p>
         </div>
 
         {/* Columns — collapsible groups on mobile */}
         <div className="mt-12 grid grid-cols-1 gap-10 border-t border-white/10 pt-10 sm:mt-16 sm:grid-cols-2 sm:pt-14 lg:grid-cols-4 lg:gap-12">
-          <FooterGroup id="explore" title="Explore" open={openGroups.includes("explore")} onToggle={() => toggleGroup("explore")}>
+          <FooterGroup id="explore" title={siteConfig.footerExploreLabel} open={openGroups.includes("explore")} onToggle={() => toggleGroup("explore")}>
             {explore.map((item) => (
               <li key={item.path}>
                 <Link to={item.path} className={footerLink}>
@@ -88,7 +84,7 @@ export function Footer() {
             ))}
           </FooterGroup>
 
-          <FooterGroup id="experiences" title="Experiences" open={openGroups.includes("experiences")} onToggle={() => toggleGroup("experiences")}>
+          <FooterGroup id="experiences" title={siteConfig.footerExperiencesLabel} open={openGroups.includes("experiences")} onToggle={() => toggleGroup("experiences")}>
             {experiences.map((experience) => (
               <li key={experience.id} className="flex flex-col">
                 <Link
@@ -104,7 +100,7 @@ export function Footer() {
             ))}
           </FooterGroup>
 
-          <FooterGroup id="contact" title="Contact" open={openGroups.includes("contact")} onToggle={() => toggleGroup("contact")}>
+          <FooterGroup id="contact" title={siteConfig.footerContactLabel} open={openGroups.includes("contact")} onToggle={() => toggleGroup("contact")}>
             <li>
               <a href={`tel:${siteConfig.phone}`} className={cn(footerLink)}>
                 {siteConfig.phoneDisplay}
@@ -120,7 +116,7 @@ export function Footer() {
             </li>
           </FooterGroup>
 
-          <FooterGroup id="offices" title="Offices" open={openGroups.includes("offices")} onToggle={() => toggleGroup("offices")}>
+          <FooterGroup id="offices" title={siteConfig.footerOfficesLabel} open={openGroups.includes("offices")} onToggle={() => toggleGroup("offices")}>
             {siteConfig.offices.map((office) => (
               <li key={office.name} className="flex flex-col gap-1">
                 <span className="text-sm font-semibold text-cream-100">
@@ -138,18 +134,16 @@ export function Footer() {
 
         {/* Transparency / disclaimers */}
         <div className="mt-14 rounded-2xl border border-white/10 p-6 sm:mt-16 sm:p-8">
-          <p className="label-caps text-cream-300">Important Notice</p>
+          <p className="label-caps text-cream-300">{siteConfig.footerNoticeTitle}</p>
           <p className="mt-4 max-w-4xl text-sm leading-relaxed text-cream-200/70 text-pretty">
-            AFHOMES is a hospitality and resort developer and operator. It does not offer real
-            estate investments, timeshares, club shares, or securities. Payments must be made
-            directly to the AFhomes Finance Department through official and verified channels.
+            {siteConfig.footerNoticeBody}
           </p>
         </div>
 
         {/* Legal row */}
         <div className="mt-10 flex flex-col items-start justify-between gap-4 border-t border-white/10 pt-8 text-sm text-cream-300/60 sm:flex-row sm:items-center">
           <p>
-            © {year} {siteConfig.brand.name} — AFhomes Group of Companies. All rights reserved.
+            © {year} {siteConfig.brand.name} — {siteConfig.footerCopyright}
           </p>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             <Link to="/compliance#privacy" className={cn(footerLink)}>

@@ -10,6 +10,15 @@ export const siteConfig: SiteConfig = {
   email: "claudmarsjimenez.afhomes@gmail.com",
   phone: "+639604316867",
   phoneDisplay: "+63 960-431-6867",
+  footerEyebrow: "AFhomes",
+  footerTitle: "Amazing & Fun.\nYour Home Away From Home.",
+  footerNoticeTitle: "Important Notice",
+  footerNoticeBody: "AFHOMES is a hospitality and resort developer and operator. It does not offer real estate investments, timeshares, club shares, or securities. Payments must be made directly to the AFhomes Finance Department through official and verified channels.",
+  footerCopyright: "AFhomes Group of Companies. All rights reserved.",
+  footerExploreLabel: "Explore",
+  footerExperiencesLabel: "Experiences",
+  footerContactLabel: "Contact",
+  footerOfficesLabel: "Offices",
   offices: [
     {
       name: "AFhomes ALM Operations",
