@@ -122,3 +122,21 @@ export async function uploadImage(file: File): Promise<string> {
   }
   return uploadMedia(file);
 }
+
+export async function deleteMedia(file: Pick<LocalMedia, "id" | "name">): Promise<void> {
+  if (supabase) {
+    const { error } = await supabase.storage.from("cms-media").remove([file.name]);
+    if (error) throw new Error(error.message);
+    return;
+  }
+
+  const db = await openLibrary();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = db.transaction("images", "readwrite");
+      transaction.objectStore("images").delete(file.id);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = transaction.onabort = () => reject(new Error("Unable to delete this media file."));
+    });
+  } finally { db.close(); }
+}

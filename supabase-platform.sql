@@ -52,6 +52,8 @@ drop policy if exists "Admins upload CMS media" on storage.objects;
 create policy "Admins upload CMS media" on storage.objects for insert to authenticated with check (bucket_id='cms-media' and (select public.is_admin()));
 drop policy if exists "Admins update CMS media" on storage.objects;
 create policy "Admins update CMS media" on storage.objects for update to authenticated using (bucket_id='cms-media' and (select public.is_admin())) with check (bucket_id='cms-media' and (select public.is_admin()));
+drop policy if exists "Admins delete CMS media" on storage.objects;
+create policy "Admins delete CMS media" on storage.objects for delete to authenticated using (bucket_id='cms-media' and (select public.is_admin()));
 drop policy if exists "Admins read CMS media" on storage.objects;
 create policy "Admins read CMS media" on storage.objects for select to authenticated using (bucket_id='cms-media' and (select public.is_admin()));
 drop policy if exists "Public read CMS media" on storage.objects;
