@@ -5,9 +5,9 @@ oracleJdk-26/
 artifacts/
 *.zip
 *.local
+# Environment files may contain deployment credentials. Keep every variant local.
 .env
 .env.*
-!.env.example
 !.env.test
 
 # Logs
