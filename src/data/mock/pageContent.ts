@@ -191,10 +191,19 @@ export const pageContent: PageContent = {
     includedTitle: "The fundamentals of welcome.",
     includedLede: "Whatever tier you choose, these privileges come with the card. Registration details and cardholder rules are shared when you enquire.",
     includedButton: "Ask about registration",
+    includedItems: [
+      { title: "Free entrance for the cardholder", body: "Walk into the AFhomes experience with the entrance fee waived for the named cardholder." },
+      { title: "Priority reservation rights", body: "Book ahead with priority across AFhomes reservations — dining, stays, and future experiences." },
+      { title: "Annual welcome gift", body: "A small gift each year, our way of welcoming you back to your home away from home." },
+    ],
     transparencyEyebrow: "Read carefully",
     transparencyTitle: "What the program is — and what it is not.",
     transparencyLede: "A loyalty program, not an investment",
     transparencyButton: "Get in touch",
+    transparencyCards: [
+      { title: "A loyalty program, not an investment", body: "AFHOMES is a hospitality and resort developer and operator. It does not offer real estate investments, timeshares, club shares, or securities. The VIP Privilege Program grants loyalty privileges and discounts only." },
+      { title: "Payments & official channels", body: "Payments must be made directly to the AFhomes Finance Department through official and verified channels. Always confirm payment instructions with AFhomes directly before transferring funds." },
+    ],
   },
   stories: {
     eyebrow: "Stories & Insights",

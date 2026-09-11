@@ -133,10 +133,12 @@ export interface PageContent {
     includedTitle: string;
     includedLede: string;
     includedButton: string;
+    includedItems: Array<{ title: string; body: string }>;
     transparencyEyebrow: string;
     transparencyTitle: string;
     transparencyLede: string;
     transparencyButton: string;
+    transparencyCards: Array<{ title: string; body: string }>;
   };
   stories: {
     eyebrow: string;

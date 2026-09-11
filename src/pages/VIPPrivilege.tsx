@@ -11,21 +11,6 @@ import { useAsync } from "@/hooks/useAsync";
 import { vipService } from "@/services/vipService";
 import { cmsRepository } from "@/lib/cms";
 
-const included = [
-  {
-    title: "Free entrance for the cardholder",
-    body: "Walk into the AFhomes experience with the entrance fee waived for the named cardholder.",
-  },
-  {
-    title: "Priority reservation rights",
-    body: "Book ahead with priority across AFhomes reservations — dining, stays, and future experiences.",
-  },
-  {
-    title: "Annual welcome gift",
-    body: "A small gift each year, our way of welcoming you back to your home away from home.",
-  },
-];
-
 export default function VIPPrivilege() {
   const { data: plans, loading, error, retry } = useAsync(() => vipService.getPlans());
   const content = cmsRepository.getPageContent().vip;
@@ -137,7 +122,7 @@ export default function VIPPrivilege() {
 
             <div className="lg:col-span-7">
               <div className="space-y-4">
-                {included.map((item, index) => (
+                {content.includedItems.map((item, index) => (
                   <Reveal key={item.title} delay={index * 0.07} y={24}>
                     <div className="group flex gap-6 rounded-2xl border border-line bg-cream-50 p-7 transition-colors hover:border-gold-500/40 sm:p-8">
                       <span className="font-display text-lg text-gold-600 italic">
@@ -171,26 +156,12 @@ export default function VIPPrivilege() {
           </div>
 
           <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Reveal>
+            {content.transparencyCards.map((card, index) => <Reveal key={card.title} delay={index * 0.08}>
               <div className="h-full rounded-2xl border border-white/10 bg-white/[0.03] p-8">
-                <p className="label-caps text-gold-400">A loyalty program, not an investment</p>
-                <p className="mt-4 leading-relaxed text-cream-200/80">
-                  AFHOMES is a hospitality and resort developer and operator. It does not
-                  offer real estate investments, timeshares, club shares, or securities. The
-                  VIP Privilege Program grants loyalty privileges and discounts only.
-                </p>
+                <p className="label-caps text-gold-400">{card.title}</p>
+                <p className="mt-4 leading-relaxed text-cream-200/80">{card.body}</p>
               </div>
-            </Reveal>
-            <Reveal delay={0.08}>
-              <div className="h-full rounded-2xl border border-white/10 bg-white/[0.03] p-8">
-                <p className="label-caps text-gold-400">Payments &amp; official channels</p>
-                <p className="mt-4 leading-relaxed text-cream-200/80">
-                  Payments must be made directly to the AFhomes Finance Department through
-                  official and verified channels. Always confirm payment instructions with
-                  AFhomes directly before transferring funds.
-                </p>
-              </div>
-            </Reveal>
+            </Reveal>)}
           </div>
 
           <Reveal delay={0.12}>

@@ -126,25 +126,28 @@ function SiteEditor({ notify }: { notify: (message: string) => void }) {
 
 function PagesEditor({ notify }: { notify: (message: string) => void }) {
   const [content, setContent] = useAdminDraft(() => cmsRepository.getPageContent());
-  const update = <S extends keyof PageContent, K extends keyof PageContent[S]>(section: S, key: K, value: PageContent[S][K]) => {
-    setContent((current) => ({ ...current, [section]: { ...current[section], [key]: value } }));
-  };
-  const field = <S extends keyof PageContent>(section: S, key: keyof PageContent[S], label: string, area = false) => {
-    const value = content[section][key];
-    if (typeof value !== "string") return null;
-    return <Field label={label} value={value} area={area} onChange={(next) => update(section, key, next as PageContent[S][typeof key])} />;
-  };
+  const updateSection = (section: keyof PageContent, value: unknown) => setContent((current) => ({ ...current, [section]: value } as PageContent));
 
-  return <Section title="Website pages" description="Edit the main text and imagery shown across the public website." onSave={async () => { await cmsRepository.savePageContent(content); notify("Page content saved"); }}><div className="mt-8 space-y-8">
-    <PagePanel title="Home page"><div className="grid gap-5 sm:grid-cols-2">{field("home", "heroTitle", "Hero title")}{field("home", "heroLede", "Hero introduction", true)}{field("home", "brandTitle", "Brand section title")}{field("home", "brandLede", "Brand section text", true)}{field("home", "whyTitle", "Why AFhomes title")}{field("home", "whyLede", "Why AFhomes introduction", true)}<ImageField label="Brand section image" image={content.home.brandImage} onChange={(image) => update("home", "brandImage", image)} /></div></PagePanel>
-    <PagePanel title="About page"><div className="grid gap-5 sm:grid-cols-2">{field("about", "eyebrow", "Eyebrow")}{field("about", "title", "Page title")}{field("about", "lede", "Introduction", true)}{field("about", "vision", "Vision", true)}{field("about", "mission", "Mission", true)}<ImageField label="Header image" image={content.about.image} onChange={(image) => update("about", "image", image)} /></div></PagePanel>
-    <PagePanel title="Contact page"><div className="grid gap-5 sm:grid-cols-2">{field("contact", "eyebrow", "Eyebrow")}{field("contact", "title", "Page title")}{field("contact", "lede", "Introduction", true)}{field("contact", "emailLabel", "Email label")}{field("contact", "phoneLabel", "Phone label")}{field("contact", "formTitle", "Form title")}{field("contact", "formLede", "Form introduction", true)}</div></PagePanel>
-    <PagePanel title="Experiences page"><div className="grid gap-5 sm:grid-cols-2">{field("experiences", "eyebrow", "Eyebrow")}{field("experiences", "title", "Page title")}{field("experiences", "lede", "Introduction", true)}<ImageField label="Header image" image={content.experiences.image} onChange={(image) => update("experiences", "image", image)} /></div></PagePanel>
-    <PagePanel title="VIP page"><div className="grid gap-5 sm:grid-cols-2">{field("vip", "eyebrow", "Eyebrow")}{field("vip", "title", "Page title")}{field("vip", "lede", "Introduction", true)}</div></PagePanel>
-    <PagePanel title="Stories page"><div className="grid gap-5 sm:grid-cols-2">{field("stories", "eyebrow", "Eyebrow")}{field("stories", "title", "Page title")}{field("stories", "lede", "Introduction", true)}<ImageField label="Header image" image={content.stories.image} onChange={(image) => update("stories", "image", image)} /></div></PagePanel>
-    <PagePanel title="FAQ page"><div className="grid gap-5 sm:grid-cols-2">{field("faq", "eyebrow", "Eyebrow")}{field("faq", "title", "Page title")}{field("faq", "lede", "Introduction", true)}{field("faq", "browseTitle", "Category heading")}{field("faq", "contactPrompt", "Contact prompt", true)}</div></PagePanel>
-    <PagePanel title="Compliance page"><div className="grid gap-5 sm:grid-cols-2">{field("compliance", "eyebrow", "Eyebrow")}{field("compliance", "title", "Page title")}{field("compliance", "lede", "Introduction", true)}{field("compliance", "commitmentTitle", "Commitment title")}{field("compliance", "commitmentLede", "Commitment text", true)}{field("compliance", "notInvestment", "Investment notice", true)}{field("compliance", "verifiedPayments", "Payment notice", true)}{field("compliance", "privacy", "Privacy policy", true)}{field("compliance", "terms", "Terms", true)}</div></PagePanel>
+  return <Section title="Website pages" description="Edit every headline, label, paragraph, list, button, and image used across the public website." onSave={async () => { await cmsRepository.savePageContent(content); notify("Page content saved"); }}><div className="mt-8 space-y-8">
+    {(Object.keys(content) as (keyof PageContent)[]).map((section) => <PagePanel key={section} title={`${friendlyLabel(String(section))} page`}><ContentFields value={content[section]} onChange={(value) => updateSection(section, value)} /></PagePanel>)}
   </div></Section>;
+}
+
+function friendlyLabel(value: string) {
+  return value.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[-_]/g, " ").replace(/^./, (letter) => letter.toUpperCase());
+}
+
+function isImageSpec(value: unknown): value is ImageSpec {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value) && "src" in value && "alt" in value && Object.keys(value).every((key) => key === "src" || key === "alt"));
+}
+
+function ContentFields({ value, onChange, label = "Content" }: { value: unknown; onChange: (value: unknown) => void; label?: string }) {
+  if (isImageSpec(value)) return <ImageField label={label} image={value} onChange={onChange} />;
+  if (typeof value === "string") return <Field label={label} value={value} area={value.length > 90} onChange={onChange} />;
+  if (typeof value === "number") return <Field label={label} value={value} type="number" onChange={(next) => onChange(Number(next))} />;
+  if (Array.isArray(value)) return <div className="sm:col-span-2 border-l-2 border-leaf-300 pl-4"><div className="flex items-center justify-between gap-4"><p className="label-caps text-ink-500">{label}</p>{value.length > 0 && <Button type="button" variant="outline" size="sm" onClick={() => onChange([...value, structuredClone(value[value.length - 1])])}>+ Add item</Button>}</div><div className="mt-4 space-y-5">{value.map((item, index) => <div key={index} className="border border-line bg-cream-50 p-4"><div className="mb-4 flex items-center justify-between"><p className="text-sm font-semibold text-pine-800">{friendlyLabel(label)} {index + 1}</p><button type="button" disabled={value.length === 1} className="text-sm font-semibold text-coral-700 disabled:opacity-40" onClick={() => onChange(value.filter((_, itemIndex) => itemIndex !== index))}>Remove</button></div><ContentFields value={item} label={`Item ${index + 1}`} onChange={(next) => onChange(value.map((current, itemIndex) => itemIndex === index ? next : current))} /></div>)}</div></div>;
+  if (value && typeof value === "object") return <div className="grid gap-5 sm:col-span-2 sm:grid-cols-2">{Object.entries(value).map(([key, nested]) => <ContentFields key={key} value={nested} label={friendlyLabel(key)} onChange={(next) => onChange({ ...value, [key]: next })} />)}</div>;
+  return null;
 }
 
 function PagePanel({ title, children }: { title: string; children: ReactNode }) {
@@ -191,7 +194,6 @@ function StoryForm({ story, onCancel, onSave }: { story: Story; onCancel: () => 
   const update = <K extends keyof Story>(key: K, value: Story[K]) => setDraft((current) => ({ ...current, [key]: value }));
   return <div className="fixed inset-0 z-100 overflow-y-auto bg-navy-950/70 px-4 py-8"><form className="mx-auto max-w-3xl border border-line bg-cream-50 p-6 shadow-2xl sm:p-10" onSubmit={(event) => { event.preventDefault(); onSave(draft); }}><div className="flex items-center justify-between border-b border-line pb-6"><h3 className="font-display text-3xl font-medium text-navy-900">{draft.id ? "Edit story" : "New story"}</h3><button type="button" className="text-sm font-semibold text-ink-500" onClick={onCancel}>Close</button></div><div className="mt-7 grid gap-5 sm:grid-cols-2"><div className="sm:col-span-2"><Field label="Title" value={draft.title} onChange={(value) => update("title", value)} /></div><Field label="Category" value={draft.category} onChange={(value) => update("category", value)} /><Field label="Date" value={draft.date} onChange={(value) => update("date", value)} /><div className="sm:col-span-2"><Field label="URL slug" value={draft.slug} onChange={(value) => update("slug", slugify(value))} /></div><div className="sm:col-span-2"><Field label="Excerpt" value={draft.excerpt} onChange={(value) => update("excerpt", value)} area /></div><div className="sm:col-span-2"><Field label="Paragraphs (blank line between paragraphs)" value={draft.content.join("\n\n")} onChange={(value) => update("content", value.split(/\n\s*\n/))} area /></div><ImageField label="Cover image" image={draft.cover} onChange={(image) => update("cover", image)} /></div><div className="mt-8 flex justify-end gap-3 border-t border-line pt-6"><Button type="button" variant="outline" size="md" onClick={onCancel}>Cancel</Button><Button type="submit" variant="accent" size="md">Save story</Button></div></form></div>;
 }
-
 
 
 
