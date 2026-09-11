@@ -7,7 +7,7 @@ function client() {
 }
 
 export const blockLabels: Record<BlockType, string> = {
-  hero: "Hero", "rich-text": "Rich text", image: "Image", gallery: "Image gallery", video: "Video", "two-column": "Two-column text & image", features: "Feature cards", services: "Service cards", testimonials: "Testimonials", faq: "FAQ", cta: "CTA banner", contact: "Contact information", map: "Map / embed link", divider: "Divider / spacer",
+  hero: "Hero", "rich-text": "Rich text", image: "Image", gallery: "Image gallery", video: "Video", "two-column": "Two-column text & image", features: "Feature cards", services: "Service cards", listings: "Listings / property cards", testimonials: "Testimonials", faq: "FAQ", cta: "CTA banner", contact: "Contact information", map: "Map / embed link", divider: "Divider / spacer",
 };
 
 export function defaultBlockContent(type: BlockType): Record<string, unknown> {
@@ -19,6 +19,7 @@ export function defaultBlockContent(type: BlockType): Record<string, unknown> {
     "two-column": { heading: "Section heading", body: "Add your content here.", imageUrl: "", imageAlt: "", imageSide: "right" },
     features: { heading: "Features", items: [{ title: "Feature", text: "Describe this feature." }] },
     services: { heading: "Services", items: [{ title: "Service", text: "Describe this service.", href: "/contact" }] },
+    listings: { heading: "Properties & experiences", text: "Showcase places, rooms, services, or other listings.", items: [{ title: "New listing", location: "Location", text: "Describe this listing.", imageUrl: "", imageAlt: "", href: "/contact", buttonLabel: "View details" }] },
     testimonials: { heading: "Testimonials", items: [{ quote: "Add a customer quotation.", name: "Customer" }] },
     faq: { heading: "Frequently asked questions", items: [{ question: "Question", answer: "Answer" }] },
     cta: { heading: "Ready to learn more?", text: "Contact AFhomes today.", buttonLabel: "Contact us", buttonHref: "/contact" },

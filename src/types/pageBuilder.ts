@@ -1,5 +1,5 @@
 export type PageStatus = "draft" | "published";
-export type BlockType = "hero" | "rich-text" | "image" | "gallery" | "video" | "two-column" | "features" | "services" | "testimonials" | "faq" | "cta" | "contact" | "map" | "divider";
+export type BlockType = "hero" | "rich-text" | "image" | "gallery" | "video" | "two-column" | "features" | "services" | "listings" | "testimonials" | "faq" | "cta" | "contact" | "map" | "divider";
 
 export interface CmsPage {
   id: string;

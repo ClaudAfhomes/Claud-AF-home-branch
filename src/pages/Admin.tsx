@@ -23,10 +23,10 @@ import type { PageContent } from "@/types/pageContent";
 
 type Tab = "overview" | "site" | "pages" | "page-media" | "experiences" | "vip" | "faq" | "stories" | "backups" | "inbox" | "media";
 const tabs: { id: Tab; label: string }[] = [
-  { id: "inbox", label: "Inbox" }, { id: "media", label: "Media" }, { id: "backups", label: "Backups & history" },
+  { id: "inbox", label: "Inbox" }, { id: "media", label: "Media Library" }, { id: "backups", label: "Backups & history" },
   { id: "overview", label: "Overview" },
-  { id: "site", label: "Site settings" },
-  { id: "pages", label: "Pages" },
+  { id: "site", label: "Navigation & Site Settings" },
+  { id: "pages", label: "Visual Page Builder" },
   { id: "page-media", label: "Page media" },
   { id: "experiences", label: "Experiences" },
   { id: "vip", label: "VIP plans" },
@@ -113,7 +113,7 @@ export default function Admin() {
 }
 
 function Overview({ onSelect }: { onSelect: (tab: Tab) => void }) {
-  const cards: [string, string, Tab][] = [["Site settings", "Brand, contact, navigation", "site"], ["Pages", "Headlines, descriptions, policies, images", "pages"], ["Experiences", `${cmsRepository.getAllExperiences().length} records`, "experiences"], ["VIP plans", `${cmsRepository.getAllVipPlans().length} records`, "vip"], ["FAQs", `${cmsRepository.getAllFaqCategories().reduce((total, category) => total + category.items.length, 0)} questions`, "faq"], ["Stories", `${cmsRepository.getAllStories().length} records`, "stories"]];
+  const cards: [string, string, Tab][] = [["Visual Page Builder", "Build pages with reusable sections, preview, and publish", "pages"], ["Media Library", "Upload and delete website photos and videos", "media"], ["Navigation & Site Settings", "Manage menus, brand, contact, and offices", "site"], ["Experiences", `${cmsRepository.getAllExperiences().length} records`, "experiences"], ["VIP plans", `${cmsRepository.getAllVipPlans().length} records`, "vip"], ["FAQs", `${cmsRepository.getAllFaqCategories().reduce((total, category) => total + category.items.length, 0)} questions`, "faq"], ["Stories", `${cmsRepository.getAllStories().length} records`, "stories"]];
   return <div><p className="label-caps text-coral-600">Content management</p><h2 className="font-display mt-2 text-4xl font-medium text-navy-900 sm:text-5xl">Everything in one place.</h2><p className="mt-3 max-w-2xl text-ink-600">Add, edit, feature, archive, restore, or delete website content without opening the codebase.</p><div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{cards.map(([title, detail, id]) => <button key={id} type="button" onClick={() => onSelect(id)} className="border border-line bg-cream-50 p-6 text-left hover:border-leaf-600"><p className="font-display text-2xl font-medium text-navy-900">{title}</p><p className="mt-2 text-sm text-ink-500">{detail}</p><span className="mt-6 inline-block text-sm font-semibold text-pine-800">Manage →</span></button>)}</div></div>;
 }
 
