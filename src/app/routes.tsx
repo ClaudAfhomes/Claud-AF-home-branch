@@ -3,6 +3,9 @@ import { createBrowserRouter } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { LoadingState } from "@/components/ui/Feedback";
 import { AdminGuard } from "@/components/admin/AdminGuard";
+import { normalizeAdminAuthEntryUrl } from "@/lib/adminAuth";
+
+normalizeAdminAuthEntryUrl();
 
 const Home = lazy(() => import("@/pages/Home"));
 const Experiences = lazy(() => import("@/pages/Experiences"));

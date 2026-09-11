@@ -3,6 +3,7 @@ import { seedRemoteDocumentsIfEmpty } from "@/lib/cms";
 import { supabase } from "@/lib/supabase";
 
 const RECOVERY_PENDING_KEY = "afhomes.admin.password-recovery";
+const AUTH_FLOW_PENDING_KEY = "afhomes.admin.auth-flow";
 const ADMIN_EMAIL = "claudmarsjimenez.afhomes@gmail.com";
 const MIN_PASSWORD_LENGTH = 12;
 const ADMIN_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
@@ -80,6 +81,49 @@ function setPasswordRecoveryPending(pending: boolean) {
   }
 }
 
+type PendingAuthFlow = "login" | "recovery";
+
+function setPendingAuthFlow(flow: PendingAuthFlow | null) {
+  try {
+    if (flow) sessionStorage.setItem(AUTH_FLOW_PENDING_KEY, flow);
+    else sessionStorage.removeItem(AUTH_FLOW_PENDING_KEY);
+  } catch {
+    // sessionStorage can be unavailable in locked-down browsers
+  }
+}
+
+function getPendingAuthFlow(): PendingAuthFlow | null {
+  try {
+    const flow = sessionStorage.getItem(AUTH_FLOW_PENDING_KEY);
+    return flow === "login" || flow === "recovery" ? flow : null;
+  } catch {
+    return null;
+  }
+}
+
+// Supabase falls back to the configured Site URL when a requested redirect is
+// missing from its allow list. Preserve admin auth in that case instead of
+// leaving an OAuth code or error on the public homepage.
+export function normalizeAdminAuthEntryUrl() {
+  if (window.location.pathname !== "/") return;
+
+  const url = new URL(window.location.href);
+  const hash = new URLSearchParams(url.hash.replace(/^#/, ""));
+  const hasAuthResult =
+    url.searchParams.has("code") ||
+    url.searchParams.has("token_hash") ||
+    url.searchParams.has("error") ||
+    hash.has("access_token") ||
+    hash.has("error");
+
+  if (!hasAuthResult) return;
+
+  const target = getPendingAuthFlow() === "recovery"
+    ? "/admin/reset-password"
+    : "/admin/auth/callback";
+  window.history.replaceState({}, document.title, `${target}${url.search}${url.hash}`);
+}
+
 function adminRedirectUrl(path: string) {
   return new URL(path, window.location.origin).href;
 }
@@ -152,6 +196,7 @@ export async function loginAdmin(username: string, password: string) {
 export async function loginAdminWithGoogle(): Promise<{ ok: boolean; reason?: "not-enabled" | "unknown" }> {
   if (!supabase) return { ok: false, reason: "unknown" };
 
+  setPendingAuthFlow("login");
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
@@ -161,6 +206,7 @@ export async function loginAdminWithGoogle(): Promise<{ ok: boolean; reason?: "n
   });
 
   if (error) {
+    setPendingAuthFlow(null);
     const message = error.message.toLowerCase();
     if (message.includes("provider") && message.includes("not enabled")) {
       return { ok: false, reason: "not-enabled" };
@@ -178,6 +224,7 @@ export async function requestAdminLoginCode(username: string) {
   const email = resolveAdminEmail(username);
   if (!email) return false;
 
+  setPendingAuthFlow("login");
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
@@ -186,6 +233,7 @@ export async function requestAdminLoginCode(username: string) {
     },
   });
 
+  if (error) setPendingAuthFlow(null);
   return !error;
 }
 
@@ -214,11 +262,14 @@ export async function requestAdminPasswordReset(username: string) {
   const email = resolveAdminEmail(username);
   if (!email) return { ok: false, reason: "invalid-admin" } as const;
 
+  setPendingAuthFlow("recovery");
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: adminRedirectUrl("/admin/reset-password"),
   });
 
   if (!error) return { ok: true } as const;
+
+  setPendingAuthFlow(null);
 
   if (error.code === "over_email_send_rate_limit" || error.status === 429) {
     return { ok: false, reason: "rate-limit" } as const;
@@ -353,6 +404,7 @@ async function completeAdminAuthCallback(options: { treatAsRecovery?: boolean })
   }
 
   if (!consumed) return null;
+  setPendingAuthFlow(null);
   clearAuthParamsFromUrl();
 
   const allowed = await isSupabaseAdmin();

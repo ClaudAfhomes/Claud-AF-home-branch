@@ -28,3 +28,9 @@ test("unknown routes show the not-found page", async ({ page }) => {
   await page.goto("/this-route-does-not-exist");
   await expect(page.getByRole("heading", { name: "This page is taking a rest day." })).toBeVisible();
 });
+
+test("Supabase auth fallbacks never leave callback errors on the public homepage", async ({ page }) => {
+  await page.goto("/?error=invalid_request&error_code=flow_state_already_used");
+  await expect(page).toHaveURL(/\/admin\/auth\/callback\?/);
+  await expect(page.getByRole("heading", { name: "Verifying sign-in" })).toBeVisible();
+});
