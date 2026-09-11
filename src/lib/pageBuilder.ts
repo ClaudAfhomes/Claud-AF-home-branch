@@ -15,7 +15,7 @@ export function defaultBlockContent(type: BlockType): Record<string, unknown> {
     hero: { eyebrow: "Welcome", title: "New page", text: "Add an introduction.", buttonLabel: "Learn more", buttonHref: "/contact", mediaUrl: "", mediaType: "image", position: "center", overlay: "medium" },
     "rich-text": { heading: "Section heading", body: "Add your content here." },
     image: { url: "", alt: "", caption: "", aspectRatio: "16/9", fit: "cover", position: "center" },
-    gallery: { heading: "Gallery", items: [] }, video: { url: "", caption: "", autoplay: false, loop: false },
+    gallery: { heading: "Gallery", items: [{ url: "", alt: "", caption: "" }] }, video: { url: "", caption: "", autoplay: false, loop: false },
     "two-column": { heading: "Section heading", body: "Add your content here.", imageUrl: "", imageAlt: "", imageSide: "right" },
     features: { heading: "Features", items: [{ title: "Feature", text: "Describe this feature." }] },
     services: { heading: "Services", items: [{ title: "Service", text: "Describe this service.", href: "/contact" }] },
