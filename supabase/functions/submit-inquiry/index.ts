@@ -1,9 +1,14 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { Resend } from "npm:resend@6.26.0";
 import { createTransport } from "npm:nodemailer@6.9.16";
-import { inquirySchema } from "../../../src/lib/inquiryValidation.ts";
+import { inquirySchema } from "./inquiryValidation.ts";
 
 const TEMP_EMAIL_TO = "claudmarsjimenez.afhomes@gmail.com";
+const PRODUCTION_ORIGINS = new Set([
+  "https://claud-af-home-branch.vercel.app",
+  "https://claud-af-home-branch-git-claud-afhomes.vercel.app",
+  "https://claud-af-home-branch-9cr7tlazh-afhomes.vercel.app",
+]);
 
 function escapeHtml(value: string) {
   return value
@@ -75,10 +80,13 @@ async function sendContactEmail(payload: { name: string; email: string; contactN
 
 Deno.serve(async (request: Request) => {
   const origin = request.headers.get("origin") ?? "";
-  const allowed = (Deno.env.get("ALLOWED_ORIGINS") ?? "").split(",").map((value) => value.trim());
+  const allowed = new Set([
+    ...PRODUCTION_ORIGINS,
+    ...(Deno.env.get("ALLOWED_ORIGINS") ?? "").split(",").map((value) => value.trim()).filter(Boolean),
+  ]);
   const headers = { "Content-Type": "application/json", "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info", "Access-Control-Allow-Methods": "POST, OPTIONS", "Vary": "Origin" };
   const reply = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers });
-  if (!origin || !allowed.includes(origin)) return new Response("Origin not allowed", { status: 403 });
+  if (!origin || !allowed.has(origin)) return new Response("Origin not allowed", { status: 403 });
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers });
   if (request.method !== "POST") return reply(405, { error: "Use POST" });
   try {
