@@ -11,7 +11,6 @@ import { uploadImage } from "@/lib/media";
 import { BackupPanel } from "@/components/admin/BackupPanel";
 import { InquiryInbox } from "@/components/admin/InquiryInbox";
 import { MediaLibrary } from "@/components/admin/MediaLibrary";
-import { MediaSectionsEditor } from "@/components/admin/MediaSectionsEditor";
 import { VisualPageBuilder } from "@/components/admin/VisualPageBuilder";
 import type { ImageSpec } from "@/lib/images";
 import type { SiteConfig } from "@/types/site";
@@ -19,15 +18,13 @@ import type { Experience, ExperienceStatus } from "@/types/experience";
 import type { VipPlan, VipTierId } from "@/types/vip";
 import type { FaqCategory } from "@/types/faq";
 import type { Story } from "@/types/story";
-import type { PageContent } from "@/types/pageContent";
 
-type Tab = "overview" | "site" | "pages" | "page-media" | "experiences" | "vip" | "faq" | "stories" | "backups" | "inbox" | "media";
+type Tab = "overview" | "site" | "pages" | "experiences" | "vip" | "faq" | "stories" | "backups" | "inbox" | "media";
 const tabs: { id: Tab; label: string }[] = [
   { id: "inbox", label: "Inbox" }, { id: "media", label: "Media Library" }, { id: "backups", label: "Backups & history" },
   { id: "overview", label: "Overview" },
   { id: "site", label: "Navigation & Site Settings" },
   { id: "pages", label: "Visual Page Builder" },
-  { id: "page-media", label: "Page media" },
   { id: "experiences", label: "Experiences" },
   { id: "vip", label: "VIP plans" },
   { id: "faq", label: "FAQs" },
@@ -109,7 +106,7 @@ export default function Admin() {
   };
   const [notice, setNotice] = useState("");
   const notify = (message: string) => { setNotice(message); window.setTimeout(() => setNotice(""), 2600); };
-  return <DraftContext.Provider value={markDirty}><div className="min-h-screen bg-cream-100 text-ink-800"><header className="border-b border-line bg-navy-950 text-cream-50"><Container className="flex items-center justify-between gap-5 py-5"><div><p className="label-caps text-leaf-300">AFhomes content studio</p><h1 className="font-display mt-1 text-2xl font-medium sm:text-3xl">Your digital home base.</h1></div><div className="flex items-center gap-4"><Link to="/" target="_blank" className="text-sm font-semibold text-cream-100 hover:text-leaf-300">View live site →</Link><button type="button" className="text-sm font-semibold text-cream-200/70 hover:text-cream-50" onClick={async () => { if (dirty && !window.confirm("Discard unsaved changes and sign out?")) return; try { await logoutAdmin(); window.location.assign("/admin/login"); } catch { notify("Sign out failed. Please try again."); } }}>Sign out</button></div></Container></header><Container className="py-8 sm:py-12"><div className="flex flex-wrap gap-2 border-b border-line pb-5" role="tablist" aria-label="CMS sections">{tabs.map((item) => <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} onClick={() => setTab(item.id)} className={`rounded-full border px-4 py-2.5 text-sm font-semibold ${tab === item.id ? "border-navy-800 bg-navy-800 text-cream-50" : "border-line bg-cream-50 text-ink-600 hover:border-leaf-600"}`}>{item.label}</button>)}</div>{notice && <p className="mt-5 rounded-lg bg-leaf-100 px-4 py-3 text-sm font-semibold text-pine-900" role="status">{notice}</p>}<p role="status" className="mt-4 text-sm font-semibold text-pine-800">{dirty ? "Unsaved changes" : "All changes saved"}</p><main className="mt-8">{tab === "inbox" && <InquiryInbox />}{tab === "media" && <MediaLibrary />}{tab === "backups" && <BackupPanel />}{tab === "overview" && <Overview onSelect={setTab} />}{tab === "site" && <SiteEditor notify={notify} />}{tab === "pages" && <PagesEditor notify={notify} />}{tab === "page-media" && <MediaSectionsEditor notify={notify} />}{tab === "experiences" && <ExperiencesEditor notify={notify} />}{tab === "vip" && <VipEditor notify={notify} />}{tab === "faq" && <FaqEditor notify={notify} />}{tab === "stories" && <StoriesEditor notify={notify} />}</main></Container></div></DraftContext.Provider>;
+  return <DraftContext.Provider value={markDirty}><div className="min-h-screen bg-cream-100 text-ink-800"><header className="border-b border-line bg-navy-950 text-cream-50"><Container className="flex items-center justify-between gap-5 py-5"><div><p className="label-caps text-leaf-300">AFhomes content studio</p><h1 className="font-display mt-1 text-2xl font-medium sm:text-3xl">Your digital home base.</h1></div><div className="flex items-center gap-4"><Link to="/" target="_blank" className="text-sm font-semibold text-cream-100 hover:text-leaf-300">View live site →</Link><button type="button" className="text-sm font-semibold text-cream-200/70 hover:text-cream-50" onClick={async () => { if (dirty && !window.confirm("Discard unsaved changes and sign out?")) return; try { await logoutAdmin(); window.location.assign("/admin/login"); } catch { notify("Sign out failed. Please try again."); } }}>Sign out</button></div></Container></header><Container className="py-8 sm:py-12"><div className="flex flex-wrap gap-2 border-b border-line pb-5" role="tablist" aria-label="CMS sections">{tabs.map((item) => <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} onClick={() => setTab(item.id)} className={`rounded-full border px-4 py-2.5 text-sm font-semibold ${tab === item.id ? "border-navy-800 bg-navy-800 text-cream-50" : "border-line bg-cream-50 text-ink-600 hover:border-leaf-600"}`}>{item.label}</button>)}</div>{notice && <p className="mt-5 rounded-lg bg-leaf-100 px-4 py-3 text-sm font-semibold text-pine-900" role="status">{notice}</p>}<p role="status" className="mt-4 text-sm font-semibold text-pine-800">{dirty ? "Unsaved changes" : "All changes saved"}</p><main className="mt-8">{tab === "inbox" && <InquiryInbox />}{tab === "media" && <MediaLibrary />}{tab === "backups" && <BackupPanel />}{tab === "overview" && <Overview onSelect={setTab} />}{tab === "site" && <div className="space-y-12"><SiteEditor notify={notify} /><FooterEditor notify={notify} /></div>}{tab === "pages" && <VisualPageBuilder />}{tab === "experiences" && <ExperiencesEditor notify={notify} />}{tab === "vip" && <VipEditor notify={notify} />}{tab === "faq" && <FaqEditor notify={notify} />}{tab === "stories" && <StoriesEditor notify={notify} />}</main></Container></div></DraftContext.Provider>;
 }
 
 function Overview({ onSelect }: { onSelect: (tab: Tab) => void }) {
@@ -135,36 +132,6 @@ function FooterEditor({ notify }: { notify: (message: string) => void }) {
     ["footerOfficesLabel", "Offices column label"],
   ];
   return <Section title="Footer content" description="Edit all public footer headings, notice text, and labels." onSave={async () => { await cmsRepository.saveSiteConfig(config); notify("Footer saved"); }}><div className="mt-8 grid gap-5 sm:grid-cols-2">{fields.map(([key, fieldLabel, area]) => <Field key={key} label={fieldLabel} value={String(config[key])} area={area} onChange={(value) => setConfig({ ...config, [key]: value })} />)}</div></Section>;
-}
-
-function PagesEditor({ notify }: { notify: (message: string) => void }) {
-  const [content, setContent] = useAdminDraft(() => cmsRepository.getPageContent());
-  const updateSection = (section: keyof PageContent, value: unknown) => setContent((current) => ({ ...current, [section]: value } as PageContent));
-
-  return <div className="space-y-12"><VisualPageBuilder /><FooterEditor notify={notify} /><Section title="Existing website pages" description="Edit every headline, label, paragraph, list, button, and image used across the original public pages." onSave={async () => { await cmsRepository.savePageContent(content); notify("Page content saved"); }}><div className="mt-8 space-y-8">
-    {(Object.keys(content) as (keyof PageContent)[]).map((section) => <PagePanel key={section} title={`${friendlyLabel(String(section))} page`}><ContentFields value={content[section]} onChange={(value) => updateSection(section, value)} /></PagePanel>)}
-  </div></Section></div>;
-}
-
-function friendlyLabel(value: string) {
-  return value.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[-_]/g, " ").replace(/^./, (letter) => letter.toUpperCase());
-}
-
-function isImageSpec(value: unknown): value is ImageSpec {
-  return Boolean(value && typeof value === "object" && !Array.isArray(value) && "src" in value && "alt" in value && Object.keys(value).every((key) => key === "src" || key === "alt"));
-}
-
-function ContentFields({ value, onChange, label = "Content" }: { value: unknown; onChange: (value: unknown) => void; label?: string }) {
-  if (isImageSpec(value)) return <ImageField label={label} image={value} onChange={onChange} />;
-  if (typeof value === "string") return <Field label={label} value={value} area={value.length > 90} onChange={onChange} />;
-  if (typeof value === "number") return <Field label={label} value={value} type="number" onChange={(next) => onChange(Number(next))} />;
-  if (Array.isArray(value)) return <div className="sm:col-span-2 border-l-2 border-leaf-300 pl-4"><div className="flex items-center justify-between gap-4"><p className="label-caps text-ink-500">{label}</p>{value.length > 0 && <Button type="button" variant="outline" size="sm" onClick={() => onChange([...value, structuredClone(value[value.length - 1])])}>+ Add item</Button>}</div><div className="mt-4 space-y-5">{value.map((item, index) => <div key={index} className="border border-line bg-cream-50 p-4"><div className="mb-4 flex items-center justify-between"><p className="text-sm font-semibold text-pine-800">{friendlyLabel(label)} {index + 1}</p><button type="button" disabled={value.length === 1} className="text-sm font-semibold text-coral-700 disabled:opacity-40" onClick={() => onChange(value.filter((_, itemIndex) => itemIndex !== index))}>Remove</button></div><ContentFields value={item} label={`Item ${index + 1}`} onChange={(next) => onChange(value.map((current, itemIndex) => itemIndex === index ? next : current))} /></div>)}</div></div>;
-  if (value && typeof value === "object") return <div className="grid gap-5 sm:col-span-2 sm:grid-cols-2">{Object.entries(value).map(([key, nested]) => <ContentFields key={key} value={nested} label={friendlyLabel(key)} onChange={(next) => onChange({ ...value, [key]: next })} />)}</div>;
-  return null;
-}
-
-function PagePanel({ title, children }: { title: string; children: ReactNode }) {
-  return <details open className="border border-line bg-cream-100/60 p-5 sm:p-7"><summary className="cursor-pointer font-display text-2xl font-medium text-navy-900">{title}</summary><div className="mt-6 border-t border-line pt-6">{children}</div></details>;
 }
 
 function ExperiencesEditor({ notify }: { notify: (message: string) => void }) {
