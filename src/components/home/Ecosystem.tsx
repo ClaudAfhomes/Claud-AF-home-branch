@@ -38,9 +38,11 @@ function supportingPanel(experience: Experience, surface: string) {
         </Link>
         <div className={`flex flex-1 flex-col p-7 sm:p-8 ${surface}`}>
           <div className="flex items-center justify-between gap-3">
-            <p className="label-caps text-leaf-700">{verbs[experience.id]}</p>
+            <p className="label-caps text-leaf-700">
+              {verbs[experience.id] ?? "Experience"}
+            </p>
             <span
-              className={`label-caps rounded-full border px-3 py-1.5 ${chipTone[experience.id]}`}
+              className={`label-caps rounded-full border px-3 py-1.5 ${chipTone[experience.id] ?? "border-leaf-300 bg-leaf-100 text-pine-900"}`}
             >
               {experience.statusLabel}
             </span>
@@ -72,9 +74,7 @@ function supportingPanel(experience: Experience, surface: string) {
 export function Ecosystem() {
   useCmsRevision();
   const experiences = cmsRepository.getExperiences();
-  const alm = experiences.find((experience) => experience.id === "alm-japanese-restaurant");
-  const hotel = experiences.find((experience) => experience.id === "smart-wellness-hotel");
-  const resort = experiences.find((experience) => experience.id === "hotspring-ecofarm-resort");
+  const [featuredExperience, ...supportingExperiences] = experiences;
 
   return (
     <section
@@ -90,17 +90,16 @@ export function Ecosystem() {
         />
 
         <div className="mt-16 grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8 sm:mt-20">
-          {/* Featured chapter — ALM */}
-          {alm && (
+          {featuredExperience && (
             <Reveal y={40} className="h-full lg:col-span-7 lg:row-span-2">
               <article className="group relative h-full overflow-hidden rounded-[1.25rem]">
                 <Link
-                  to={`/experiences/${alm.slug}`}
+                  to={`/experiences/${featuredExperience.slug}`}
                   className="block h-full"
                   data-cursor="view"
                 >
                   <SmartImage
-                    spec={alm.image}
+                    spec={featuredExperience.image}
                     priority
                     className="aspect-[4/3] h-full w-full object-cover transition-transform duration-1000 group-hover:scale-[1.05] lg:aspect-auto"
                     sizes="(max-width: 1024px) 100vw, 58vw"
@@ -111,23 +110,27 @@ export function Ecosystem() {
                   />
                   <span className="absolute inset-0 flex flex-col justify-end p-8 text-cream-50 sm:p-10">
                     <span className="flex flex-wrap items-center gap-3">
-                      <span className="label-caps text-leaf-300">{verbs[alm.id]}</span>
-                      {alm.featured && <Badge tone="gold">Featured</Badge>}
+                      <span className="label-caps text-leaf-300">
+                        {verbs[featuredExperience.id] ?? "Experience"}
+                      </span>
+                      {featuredExperience.featured && (
+                        <Badge tone="gold">Featured</Badge>
+                      )}
                       <StatusBadge
-                        status={alm.status}
-                        label={alm.statusLabel}
+                        status={featuredExperience.status}
+                        label={featuredExperience.statusLabel}
                         tone="dark"
                         className="border-white/20 bg-white/10 backdrop-blur-md"
                       />
                     </span>
                     <h3 className="font-display mt-4 max-w-xl text-3xl leading-[1.08] font-medium text-balance text-cream-50 sm:text-5xl">
-                      {alm.name}
+                      {featuredExperience.name}
                     </h3>
                     <span className="mt-3 max-w-lg text-[0.95rem] leading-relaxed text-cream-200/80 text-pretty">
-                      {alm.summary}
+                      {featuredExperience.summary}
                     </span>
                     <span className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-cream-50 transition-colors duration-300 group-hover:text-leaf-300">
-                      {alm.actionLabel}
+                      {featuredExperience.actionLabel}
                       <ArrowRight className="h-4 w-4 text-leaf-300 transition-transform duration-300 group-hover:translate-x-1" />
                     </span>
                   </span>
@@ -136,19 +139,14 @@ export function Ecosystem() {
             </Reveal>
           )}
 
-          {/* Supporting chapter — Smart Wellness Hotel */}
-          {hotel && (
-            <div className="lg:col-span-5">
-              {supportingPanel(hotel, "bg-cream-50")}
+          {supportingExperiences.map((experience, index) => (
+            <div key={experience.id} className="lg:col-span-5">
+              {supportingPanel(
+                experience,
+                index % 2 ? "bg-sage-100" : "bg-cream-50",
+              )}
             </div>
-          )}
-
-          {/* Supporting chapter — Hotspring & Ecofarm Resort */}
-          {resort && (
-            <div className="lg:col-span-5">
-              {supportingPanel(resort, "bg-sage-100")}
-            </div>
-          )}
+          ))}
         </div>
       </Container>
     </section>

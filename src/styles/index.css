@@ -241,6 +241,12 @@
   }
 }
 
+@media (min-width: 1024px) {
+  body.cms-sidebar-compact .lg\:pl-\[18rem\] {
+    padding-left: 4rem;
+  }
+}
+
 @layer components {
   .cms-input {
     @apply mt-2 block w-full rounded-lg border border-line bg-cream-50 px-4 py-3 text-sm text-ink-800 outline-none transition-colors placeholder:text-ink-400 focus:border-leaf-600 focus:ring-2 focus:ring-leaf-500/30;

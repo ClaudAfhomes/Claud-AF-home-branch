@@ -35,14 +35,6 @@ export async function listCmsPages(): Promise<CmsPage[]> {
   return (data ?? []) as CmsPage[];
 }
 
-export async function createCmsPage(title: string, slug: string): Promise<CmsPage> {
-  let result = await client().from("cms_pages").insert({ title, slug, seo_title: title, seo_description: "", open_graph_title: "", open_graph_description: "", open_graph_image: "" }).select().single();
-  if (result.error?.code === "PGRST204" || result.error?.code === "42703") result = await client().from("cms_pages").insert({ title, slug, seo_title: title, seo_description: "" }).select().single();
-  const { data, error } = result;
-  if (error) throw new Error(error.message);
-  return data as CmsPage;
-}
-
 export async function loadDraftSections(pageId: string): Promise<CmsPageSection[]> {
   const { data, error } = await client().from("cms_page_sections").select("*").eq("page_id", pageId).order("sort_order");
   if (error) throw new Error(error.message);
@@ -61,8 +53,8 @@ export async function saveCmsPage(page: CmsPage, sections: CmsPageSection[]): Pr
       if (/url$/i.test(key) && typeof value === "string" && value && !/^(?:https?:\/\/|\/)/.test(value)) throw new Error(`${blockLabels[section.block_type]}: ${key} must be an HTTPS URL or local path.`);
     }
   }
-  let pageResult = await client().from("cms_pages").update({ slug: page.slug, title: page.title, seo_title: page.seo_title, seo_description: page.seo_description, open_graph_title: page.open_graph_title ?? "", open_graph_description: page.open_graph_description ?? "", open_graph_image: page.open_graph_image ?? "", updated_at: new Date().toISOString() }).eq("id", page.id);
-  if (pageResult.error?.code === "PGRST204" || pageResult.error?.code === "42703") pageResult = await client().from("cms_pages").update({ slug: page.slug, title: page.title, seo_title: page.seo_title, seo_description: page.seo_description, updated_at: new Date().toISOString() }).eq("id", page.id);
+  let pageResult = await client().from("cms_pages").update({ seo_title: page.seo_title, seo_description: page.seo_description, open_graph_title: page.open_graph_title ?? "", open_graph_description: page.open_graph_description ?? "", open_graph_image: page.open_graph_image ?? "", updated_at: new Date().toISOString() }).eq("id", page.id);
+  if (pageResult.error?.code === "PGRST204" || pageResult.error?.code === "42703") pageResult = await client().from("cms_pages").update({ seo_title: page.seo_title, seo_description: page.seo_description, updated_at: new Date().toISOString() }).eq("id", page.id);
   const pageError = pageResult.error;
   if (pageError) throw new Error(pageError.message);
   const rows = sections.map((section, index) => ({ ...section, page_id: page.id, sort_order: index, updated_at: new Date().toISOString() }));

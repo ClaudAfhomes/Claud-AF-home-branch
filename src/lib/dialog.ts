@@ -17,8 +17,8 @@ export async function showError(text: string) {
   await Swal.fire({ title: "Something went wrong", text, icon: "error", confirmButtonColor: "#57AB4B" });
 }
 
-export async function showToast(text: string, icon: "success" | "error" = "success") {
-  await Swal.fire({ toast: true, position: "top-end", timer: icon === "error" ? 5000 : 2800, timerProgressBar: true, showConfirmButton: false, icon, text });
+export async function showToast(text: string, icon: "success" | "error" | "warning" | "info" = "success") {
+  await Swal.fire({ toast: true, position: "top-end", timer: icon === "error" ? 5000 : 3200, timerProgressBar: true, showConfirmButton: false, icon, text });
 }
 
 export async function promptText(title: string, inputLabel: string) {
