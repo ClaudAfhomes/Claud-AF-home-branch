@@ -82,7 +82,8 @@ export function Seo({ title, description, path = "/", openGraphTitle, openGraphD
       setMeta("name", "twitter:image", ogImage);
     }
     setLink("canonical", canonical);
-    if (site.seo.favicon.src) setLink("icon", absoluteUrl(canonicalBase, site.seo.favicon.src));
+    const favicon = site.seo.favicon.src === "/logo.png" ? "/favicon.svg" : site.seo.favicon.src;
+    if (favicon) setLink("icon", new URL(favicon, window.location.origin).href);
 
     const primaryOffice = site.offices.find((office) => /head|resort/i.test(office.role)) ?? site.offices[0];
     const socialUrls = site.socialLinks

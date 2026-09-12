@@ -12,6 +12,7 @@
 import goldCard from "@/assets/uploads/gold-card.png";
 import silverCard from "@/assets/uploads/silver-card.png";
 import bronzeCard from "@/assets/uploads/bronze-card.png";
+import logo from "@/assets/logo.png";
 
 export type ImageKey = string;
 
@@ -131,6 +132,33 @@ export const PLACEHOLDER = {
 } as const;
 
 export type PlaceholderKey = keyof typeof PLACEHOLDER;
+
+export interface SiteMediaAsset extends ImageSpec {
+  id: string;
+  name: string;
+  category: string;
+}
+
+function categoryForImage(key: string) {
+  if (key.startsWith("alm-")) return "rooms";
+  if (key.startsWith("hotel-")) return "rooms";
+  if (key.startsWith("resort-")) return "gallery";
+  if (key.startsWith("story-")) return "general";
+  if (key.startsWith("vip-")) return "offers";
+  return "general";
+}
+
+/** Images bundled with the site and available for discovery in the CMS media library. */
+export const siteMediaCatalog: SiteMediaAsset[] = [
+  { id: "site-image-logo", name: "AFhomes logo", src: logo, alt: "AFhomes", category: "general" },
+  ...Object.entries(PLACEHOLDER).map(([key, image]) => ({
+    id: `site-image-${key}`,
+    name: key.replace(/-/g, " "),
+    src: image.src,
+    alt: image.alt,
+    category: categoryForImage(key),
+  })),
+];
 
 export function getPlaceholder(key: PlaceholderKey): ImageSpec {
   return PLACEHOLDER[key];

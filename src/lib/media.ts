@@ -1,4 +1,5 @@
 import { cmsRepository } from "@/lib/cms";
+import { siteMediaCatalog } from "@/lib/images";
 import { hasSupabaseConfig, supabase } from "@/lib/supabase";
 
 export type MediaKind = "image" | "video";
@@ -13,7 +14,20 @@ export interface LocalMedia {
   altText: string;
   category: string;
   sizeBytes?: number;
+  isBuiltIn?: boolean;
 }
+
+export const builtInMedia: LocalMedia[] = siteMediaCatalog.map((asset) => ({
+  id: asset.id,
+  name: asset.name,
+  storagePath: asset.id,
+  src: asset.src,
+  created: 0,
+  kind: "image",
+  altText: asset.alt,
+  category: asset.category,
+  isBuiltIn: true,
+}));
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm", "video/quicktime"];
 const MAX_VIDEO_BYTES = 25 * 1024 * 1024;

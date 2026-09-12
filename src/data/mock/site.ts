@@ -29,7 +29,7 @@ export const siteConfig: SiteConfig = {
     keywords: ["AFhomes", "Laguna resort", "wellness hotel", "hotspring resort", "Japanese restaurant"],
     canonicalSiteUrl: "https://www.afhomes.com.ph",
     defaultSocialImage: { src: "", alt: "AFhomes hospitality and wellness experiences in Laguna" },
-    favicon: { src: "/logo.png", alt: "AFhomes favicon" },
+    favicon: { src: "/favicon.svg?v=2", alt: "AFhomes favicon" },
   },
   pageSeo: [],
   email: "claudmarsjimenez.afhomes@gmail.com",
