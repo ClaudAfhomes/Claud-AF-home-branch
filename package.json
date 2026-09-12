@@ -12,7 +12,8 @@
     "package:source": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/package-source.ps1",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
-    "test": "playwright test",
+    "test": "node --experimental-strip-types --test --test-isolation=none src/lib/cmsAudit.test.ts src/lib/cmsLocal.test.ts && playwright test",
+    "test:online": "node scripts/smoke-online.mjs",
     "deploy:check": "npm run lint && npm run build && npm run test"
   },
   "dependencies": {

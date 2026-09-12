@@ -23,6 +23,17 @@ import {
 } from "@/lib/cmsLocal";
 import { supabase } from "@/lib/supabase";
 import { documentKeys, validateDocument, type DocumentKey } from "@/lib/cmsValidation";
+import {
+  auditActorName,
+  buildAuditRecord,
+  buildRestoreSummary,
+  documentLabels,
+  formatSummaryWithActor,
+  isGenericAuditSummary,
+  philippineDateBoundary,
+  type AuditAction,
+  type AuditChange,
+} from "@/lib/cmsAudit";
 
 const CMS_CACHE_KEY = "afhomes.cms.supabase.v1";
 const versions: Partial<Record<DocumentKey, number>> = {};
@@ -89,42 +100,6 @@ function mapSaveError(message: string) {
   return new Error(message);
 }
 
-const documentLabels: Record<DocumentKey, string> = {
-  site: "Site settings", pageContent: "Page content", experiences: "Experiences", vip: "VIP plans", faq: "FAQs", stories: "Stories", mediaBlocks: "Page media",
-};
-
-function changeSummary(key: DocumentKey, previous: unknown, next: unknown) {
-  const label = documentLabels[key];
-  if (previous === undefined) return `${label} created.`;
-  if (JSON.stringify(previous) === JSON.stringify(next)) return `${label} saved without content changes.`;
-  if (key === "site" && previous && next && typeof previous === "object" && typeof next === "object") {
-    const before = previous as Record<string, unknown>;
-    const after = next as Record<string, unknown>;
-    const namedFields: Array<[string, string]> = [["businessName", "business name"], ["phoneDisplay", "contact phone"], ["email", "contact email"]];
-    for (const [field, fieldLabel] of namedFields) {
-      if (before[field] !== after[field]) return `Updated ${fieldLabel} from “${String(before[field] ?? "blank")}” to “${String(after[field] ?? "blank")}”.`;
-    }
-    const beforeLogo = (before.logo as { src?: string } | undefined)?.src;
-    const afterLogo = (after.logo as { src?: string } | undefined)?.src;
-    if (beforeLogo !== afterLogo) return afterLogo ? "Replaced the business logo." : "Removed the business logo.";
-  }
-  if (Array.isArray(previous) && Array.isArray(next)) {
-    const added = Math.max(0, next.length - previous.length);
-    const removed = Math.max(0, previous.length - next.length);
-    const updated = Math.min(previous.length, next.length) - Math.abs(next.length - previous.length);
-    return `${label}: ${added ? `added ${added}` : ""}${added && (removed || updated) ? ", " : ""}${removed ? `removed ${removed}` : ""}${(added || removed) && updated ? ", " : ""}${updated ? `updated ${updated}` : ""} item${next.length === 1 ? "" : "s"}.`;
-  }
-  if (previous && next && typeof previous === "object" && typeof next === "object") {
-    const previousEntries = previous as Record<string, unknown>;
-    const nextEntries = next as Record<string, unknown>;
-    const added = Object.keys(nextEntries).filter((item) => !(item in previousEntries)).length;
-    const removed = Object.keys(previousEntries).filter((item) => !(item in nextEntries)).length;
-    const updated = Object.keys(nextEntries).filter((item) => item in previousEntries && JSON.stringify(nextEntries[item]) !== JSON.stringify(previousEntries[item])).length;
-    return `${label}: ${added ? `added ${added}` : ""}${added && (removed || updated) ? ", " : ""}${removed ? `removed ${removed}` : ""}${(added || removed) && updated ? ", " : ""}${updated ? `updated ${updated}` : ""} field${added + removed + updated === 1 ? "" : "s"}.`;
-  }
-  return `${label} updated.`;
-}
-
 async function hydrateSupabaseDocuments(): Promise<void> {
   if (!supabase) {
     await loadDocuments();
@@ -151,16 +126,31 @@ export interface SaveDocumentOptions {
   summaries?: Partial<Record<DocumentKey, string>>;
 }
 
+async function currentAuditActor() {
+  if (!supabase) return "Local administrator";
+  const { data } = await supabase.auth.getUser();
+  const metadata = data.user?.user_metadata ?? {};
+  const fullName = typeof metadata.full_name === "string" ? metadata.full_name : typeof metadata.name === "string" ? metadata.name : "";
+  return auditActorName(fullName, data.user?.email, data.user?.id);
+}
+
 export async function saveDocuments(changes: Partial<Record<DocumentKey, unknown>>, options: SaveDocumentOptions = {}): Promise<void> {
   const validated: Partial<Record<DocumentKey, unknown>> = {};
   for (const key of Object.keys(changes) as DocumentKey[]) {
     validated[key] = validateDocument(key, changes[key]);
   }
-  const changeSummaries = Object.fromEntries((Object.keys(validated) as DocumentKey[]).map((key) => [key, options.summaries?.[key] ?? changeSummary(key, supabase ? readCache().documents[key] : localValue(key), validated[key])])) as Partial<Record<DocumentKey, string>>;
-  const changeActions = Object.fromEntries((Object.keys(validated) as DocumentKey[]).map((key) => [key, options.actionType ?? ((supabase ? readCache().documents[key] : localValue(key)) === undefined ? "created" : "updated")])) as Partial<Record<DocumentKey, LocalRevision["action_type"]>>;
+  const actor = await currentAuditActor();
+  const auditRecords = Object.fromEntries((Object.keys(validated) as DocumentKey[]).map((key) => {
+    const previous = supabase ? readCache().documents[key] : localValue(key);
+    return [key, buildAuditRecord(key, previous, validated[key], actor)];
+  })) as Record<DocumentKey, ReturnType<typeof buildAuditRecord>>;
+  const changeSummaries = Object.fromEntries((Object.keys(validated) as DocumentKey[]).map((key) => [key, formatSummaryWithActor(options.summaries?.[key] ?? auditRecords[key].summary, actor)])) as Partial<Record<DocumentKey, string>>;
+  const changeActions = Object.fromEntries((Object.keys(validated) as DocumentKey[]).map((key) => [key, options.actionType ?? auditRecords[key].action])) as Partial<Record<DocumentKey, LocalRevision["action_type"]>>;
+  const changeDetails = Object.fromEntries((Object.keys(validated) as DocumentKey[]).map((key) => [key, auditRecords[key].changes])) as Partial<Record<DocumentKey, AuditChange[]>>;
+  const changeCounts = Object.fromEntries((Object.keys(validated) as DocumentKey[]).map((key) => [key, auditRecords[key].changeCount])) as Partial<Record<DocumentKey, number>>;
 
   if (!supabase) {
-    await localSaveDocuments(validated, changeSummaries, changeActions);
+    await localSaveDocuments(validated, changeSummaries, changeActions, changeDetails, changeCounts);
     return;
   }
 
@@ -174,7 +164,12 @@ export async function saveDocuments(changes: Partial<Record<DocumentKey, unknown
     expected,
     change_summaries: changeSummaries,
     change_actions: changeActions,
+    change_details: changeDetails,
+    change_counts: changeCounts,
   });
+  if (result.error && (result.error.code === "PGRST202" || result.error.message.includes("change_details") || result.error.message.includes("change_counts"))) {
+    result = await supabase.rpc("save_cms_documents", { changes: validated, expected, change_summaries: changeSummaries, change_actions: changeActions });
+  }
   if (result.error && (result.error.code === "PGRST202" || result.error.message.includes("change_actions"))) {
     result = await supabase.rpc("save_cms_documents", { changes: validated, expected, change_summaries: changeSummaries });
   }
@@ -196,19 +191,28 @@ function read<T>(key: DocumentKey, fallback: T): T {
 
 export async function listHistory(page: number, filters: HistoryFilters = {}): Promise<LocalRevision[]> {
   if (!supabase) return localListHistory(page, filters);
+  const cmsClient = supabase;
 
   const from = page * 25;
-  let query = supabase
-    .from("cms_history")
-    .select("id, key, revision, saved_at, saved_by, saved_by_email, action_type, change_summary, value, after_value")
-    .order("saved_at", { ascending: false })
-    .range(from, from + 24);
-  if (filters.key) query = query.eq("key", filters.key);
-  if (filters.action) query = query.eq("action_type", filters.action);
-  if (filters.user) query = query.ilike("saved_by_email", `%${filters.user.replace(/[%_,]/g, "")}%`);
-  if (filters.search) query = query.ilike("change_summary", `%${filters.search.replace(/[%_,]/g, "")}%`);
-  if (filters.dateFrom) query = query.gte("saved_at", `${filters.dateFrom}T00:00:00`);
-  if (filters.dateTo) query = query.lte("saved_at", `${filters.dateTo}T23:59:59.999`);
+  const queryHistory = async (columns: string) => {
+    let query = cmsClient
+      .from("cms_history")
+      .select(columns)
+      .order("saved_at", { ascending: false })
+      .range(from, from + 24);
+    if (filters.key) query = query.eq("key", filters.key);
+    if (filters.action) query = query.eq("action_type", filters.action);
+    if (filters.user) {
+      const userFilter = filters.user.replace(/[%_,]/g, "");
+      query = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userFilter)
+        ? query.eq("saved_by", userFilter)
+        : query.ilike("saved_by_email", `%${userFilter}%`);
+    }
+    if (filters.search) query = query.ilike("change_summary", `%${filters.search.replace(/[%_,]/g, "")}%`);
+    if (filters.dateFrom) query = query.gte("saved_at", philippineDateBoundary(filters.dateFrom));
+    if (filters.dateTo) query = query.lte("saved_at", philippineDateBoundary(filters.dateTo, true));
+    return await query;
+  };
   interface HistoryRow {
     id: string | number;
     key: string;
@@ -218,31 +222,66 @@ export async function listHistory(page: number, filters: HistoryFilters = {}): P
     saved_by_email?: string | null;
     action_type?: string;
     change_summary?: string | null;
+    change_details?: unknown;
+    change_count?: number;
+    content_revision?: number;
     value: unknown;
     after_value?: unknown;
   }
-  const primary = await query;
-  let data = (primary.data ?? []) as HistoryRow[];
+  const primary = await queryHistory("id, key, revision, content_revision, saved_at, saved_by, saved_by_email, action_type, change_summary, change_details, change_count, value, after_value");
+  let data = (primary.data ?? []) as unknown as HistoryRow[];
   let historyError = primary.error;
   if (historyError?.code === "42703") {
-    const legacy = await supabase.from("cms_history").select("id, key, revision, saved_at, saved_by, change_summary, value").order("saved_at", { ascending: false }).range(from, from + 24);
-    data = (legacy.data ?? []) as HistoryRow[];
+    const previousSchema = await queryHistory("id, key, revision, saved_at, saved_by, saved_by_email, action_type, change_summary, value, after_value");
+    data = (previousSchema.data ?? []) as unknown as HistoryRow[];
+    historyError = previousSchema.error;
+  }
+  if (historyError?.code === "42703") {
+    const legacy = await queryHistory("id, key, revision, saved_at, saved_by, change_summary, value");
+    data = (legacy.data ?? []) as unknown as HistoryRow[];
     historyError = legacy.error;
   }
   if (historyError) throw new Error(historyError.message);
 
-  return data.map((row) => ({
-    id: String(row.id),
-    key: row.key as DocumentKey,
-    value: row.value,
-    after_value: row.after_value,
-    revision: row.revision,
-    saved_at: row.saved_at,
-    saved_by: row.saved_by ?? null,
-    saved_by_email: row.saved_by_email ?? null,
-    action_type: (row.action_type ?? "updated") as LocalRevision["action_type"],
-    change_summary: row.change_summary ?? "Content updated.",
-  }));
+  return data.map((row) => {
+    const key = row.key as DocumentKey;
+    const fallbackAudit = row.after_value == null ? undefined : buildAuditRecord(key, row.value, row.after_value);
+    const genericSummary = isGenericAuditSummary(row.change_summary);
+    const actor = auditActorName(undefined, row.saved_by_email, row.saved_by);
+    const fallbackSummary = fallbackAudit
+      ? formatSummaryWithActor(fallbackAudit.summary, actor)
+      : `${actor} updated ${documentLabels[key].toLowerCase()}.`;
+    const allowedActions: AuditAction[] = ["created", "updated", "deleted", "archived", "restored", "published", "unpublished"];
+    const storedAction = allowedActions.find((action) => action === row.action_type);
+    return {
+      id: String(row.id),
+      key,
+      value: row.value,
+      after_value: row.after_value,
+      revision: row.revision,
+      content_revision: row.content_revision ?? row.revision + 1,
+      saved_at: row.saved_at,
+      saved_by: row.saved_by ?? null,
+      saved_by_email: row.saved_by_email ?? null,
+      action_type: (genericSummary ? fallbackAudit?.action : storedAction) ?? storedAction ?? fallbackAudit?.action ?? "updated",
+      change_summary: genericSummary ? fallbackSummary : row.change_summary ?? fallbackSummary,
+      change_details: Array.isArray(row.change_details) && row.change_details.length > 0
+        ? row.change_details as AuditChange[]
+        : fallbackAudit?.changes,
+      change_count: row.change_count ?? fallbackAudit?.changeCount,
+    };
+  });
+}
+
+export async function restoreHistorySnapshot(row: LocalRevision): Promise<void> {
+  const snapshot = await historyValue(row.id);
+  await saveDocuments(
+    { [row.key]: snapshot },
+    {
+      actionType: "restored",
+      summaries: { [row.key]: buildRestoreSummary(row.key, row.revision, row.saved_at) },
+    },
+  );
 }
 
 export async function historyValue(id: string): Promise<unknown> {

@@ -83,9 +83,14 @@ For detailed authentication, email, and local-development guidance, see
 
 The visual CMS requires no additional Vercel variables. Apply migrations
 `20260912011423_cms_admin_experience_seo_history.sql` and
-`20260912012157_cms_settings_validation.sql` before deploying the matching
-frontend. They add categorized media metadata, Open Graph fields, detailed
-administrator history, and validation for the new settings document fields.
+`20260912012157_cms_settings_validation.sql`, followed by
+`20260912075153_detailed_cms_audit_history.sql`, before deploying the matching
+frontend. The final migration adds backward-compatible structured audit
+details, total change counts, content revision numbers, the archived action,
+and server-side audit-value sanitization. It also replaces
+`save_cms_documents` so each content write and its history row remain in the
+same database transaction. Existing restore snapshots and older history rows
+remain usable.
 
 ## Visual page builder
 
@@ -118,6 +123,18 @@ npm ci
 npx playwright install chromium
 npm run deploy:check
 ```
+
+After Vercel reports the deployment as ready, run the public online smoke test
+against its production or preview URL:
+
+```sh
+npm run test:online -- https://your-deployment.vercel.app
+```
+
+This checks direct SPA routes, `robots.txt`, `sitemap.xml`, browser-to-Supabase
+requests, runtime errors, and that the deployed administrator bundle contains
+the detailed Change History / Restore interface. Signing in remains a manual
+test because administrator credentials must not be stored in the repository.
 
 - Confirm the seven `cms_documents` keys can be read anonymously.
 - Confirm an unlisted authenticated user cannot update CMS documents or read inquiries.
