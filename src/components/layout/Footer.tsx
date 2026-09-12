@@ -52,6 +52,9 @@ export function Footer() {
   const siteConfig = cmsRepository.getSiteConfig();
   const experiences = cmsRepository.getExperiences();
   const explore = siteConfig.nav.main.filter((item) => item.path !== "/");
+  const socialLinks = [...siteConfig.socialLinks]
+    .filter((item) => item.enabled)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
   const year = new Date().getFullYear();
   const [openGroups, setOpenGroups] = useState<string[]>(["explore"]);
 
@@ -127,9 +130,17 @@ export function Footer() {
                     {line}
                   </span>
                 ))}
+                {office.mapUrl && <a href={office.mapUrl} target="_blank" rel="noopener noreferrer" className={cn(footerLink, "mt-1 text-sm")}>Directions</a>}
               </li>
             ))}
           </FooterGroup>
+        </div>
+
+        <div className="mt-10 border-t border-white/10 pt-8">
+          <p className="label-caps text-cream-300">Follow AFhomes</p>
+          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-3 text-sm">
+            {socialLinks.map((item) => <a key={item.id} href={item.url} target="_blank" rel="noopener noreferrer" className={footerLink}>{item.label}</a>)}
+          </div>
         </div>
 
         {/* Transparency / disclaimers */}

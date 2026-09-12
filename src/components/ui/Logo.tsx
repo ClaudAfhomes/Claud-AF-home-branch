@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/cn";
+import { cmsRepository } from "@/lib/cms";
+import { useCmsRevision } from "@/hooks/useCmsRevision";
 import logo from "@/assets/logo.png";
 
 interface LogoProps {
@@ -9,6 +11,8 @@ interface LogoProps {
 
 /** AFhomes brand mark, rendered from the official logo asset. */
 export function Logo({ className, to = "/" }: LogoProps) {
+  useCmsRevision();
+  const siteConfig = cmsRepository.getSiteConfig();
   return (
     <Link
       to={to}
@@ -16,8 +20,8 @@ export function Logo({ className, to = "/" }: LogoProps) {
       aria-label="AFhomes — Home Away From Home"
     >
       <img
-        src={logo}
-        alt="AFhomes"
+        src={siteConfig.logo?.src || logo}
+        alt={siteConfig.logo?.alt || "AFhomes"}
         width={1480}
         height={855}
         className="h-8 w-auto sm:h-9 lg:h-10"

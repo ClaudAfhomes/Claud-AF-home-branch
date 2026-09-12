@@ -5,6 +5,7 @@ import type { InquiryRecord, InquiryStatus } from "@/api/inquiries";
 import { useAsync } from "@/hooks/useAsync";
 import { ErrorState, LoadingState } from "@/components/ui/Feedback";
 import { Button } from "@/components/ui/Button";
+import { confirmAction } from "@/lib/dialog";
 import { downloadJson } from "@/components/admin/BackupPanel";
 
 export function InquiryInbox() {
@@ -20,7 +21,7 @@ function InquiryCard({ record, onSaved }: { record: InquiryRecord; onSaved: () =
   const [error, setError] = useState("");
   return <article className="space-y-4 border border-line bg-cream-50 p-6"><h3 className="font-display text-2xl">{record.name} · {record.kind}</h3><p className="text-sm">{new Date(record.created_at).toLocaleString()} · {record.inquiry_type} · Reference {record.id}</p><p><a className="text-pine-800 underline" href={`mailto:${record.email}`}>{record.email}</a> · {record.contact_number}</p>{record.kind === "reservation" && <p>Visit: {record.visit_date}{record.end_date ? ` to ${record.end_date}` : ""} · {record.guests} guests</p>}<p className="whitespace-pre-wrap">{record.message}</p><fieldset disabled={saving} className="space-y-3"><label className="block">Status<select className="cms-input" value={status} onChange={(event) => setStatus(event.target.value as InquiryStatus)}>{["new", "contacted", "confirmed", "closed"].map((value) => <option key={value}>{value}</option>)}</select></label><label className="block">Internal notes<textarea className="cms-input" maxLength={5000} value={notes} onChange={(event) => setNotes(event.target.value)} /></label><Button onClick={async () => {
     if (saving) return;
-    if (status === "confirmed" && record.status !== "confirmed" && !window.confirm("Have you confirmed availability and arrangements with this guest?")) return;
+    if (status === "confirmed" && record.status !== "confirmed" && !await confirmAction("Confirm inquiry?", "Confirm availability and arrangements with this guest before continuing.")) return;
     setSaving(true); setError("");
     try { await inquiryService.update(record.id, status, notes); onSaved(); }
     catch (cause) { setError(cause instanceof Error ? cause.message : "Update failed"); }

@@ -16,6 +16,7 @@ export default function AdminLogin() {
   const location = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
@@ -141,14 +142,24 @@ export default function AdminLogin() {
 
             <label className="block">
               <span className="label-caps text-ink-500">Password</span>
-              <input
-                required
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className="cms-input"
-              />
+              <span className="relative mt-1 block">
+                <input
+                  required
+                  type={passwordVisible ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="cms-input pr-16"
+                />
+                <button
+                  type="button"
+                  onClick={() => setPasswordVisible((visible) => !visible)}
+                  className="absolute top-1/2 right-3 -translate-y-1/2 text-xs font-semibold text-pine-800 hover:text-leaf-700"
+                  aria-label={passwordVisible ? "Hide password" : "Show password"}
+                >
+                  {passwordVisible ? "Hide" : "Show"}
+                </button>
+              </span>
             </label>
 
             {error && <p className="text-sm font-medium text-coral-700" role="alert">{error}</p>}

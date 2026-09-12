@@ -1,4 +1,4 @@
-begin;
+ begin;
 
 create table public.cms_pages (
   id uuid primary key default gen_random_uuid(),

@@ -17,8 +17,8 @@ Run these files in the Supabase SQL Editor in this order:
 `supabase-platform.sql` is transactional. If it fails, correct the reported
 problem and rerun the entire file after the transaction rolls back.
 
-The database provides shared CMS documents, revision history, an administrator
-allowlist, page-level image/video sections, media storage, and contact/reservation inquiries. RLS blocks direct
+The database provides shared CMS documents, detailed revision history, an administrator
+allowlist, page-level image/video sections, categorized media storage, global and per-page SEO, and contact/reservation inquiries. RLS blocks direct
 public writes. Public inquiries are accepted only through the Edge Function.
 
 ## Edge Function configuration
@@ -91,6 +91,9 @@ Verify against the configured Supabase project:
 - An authenticated non-admin cannot read admin-only records or write CMS data.
 - A listed administrator can read inquiries, upload media, and save CMS data.
 - A listed administrator can add, reorder, publish, and delete page media; public users can only view published files.
+- Media that is still referenced by CMS content cannot be deleted from the admin UI.
+- Saved social links, locations, SEO defaults, and per-page SEO appear on the public site after refresh.
+- Restoring a CMS document or visual page version creates a new history/version entry.
 - Removing allowlist membership prevents further admin operations.
 - A public inquiry succeeds only from an allowed origin and is rate-limited.
 

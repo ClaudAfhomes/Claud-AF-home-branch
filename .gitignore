@@ -31,3 +31,5 @@ supabase/.temp/
 # Browser test artifacts
 playwright-report/
 test-results/
+.vercel
+.env*

@@ -1,13 +1,11 @@
 import { useEffect } from "react";
 import { cmsRepository } from "@/lib/cms";
 
-const DEFAULT_DESCRIPTION =
-  "AFhomes — Amazing & Fun. Your Home Away From Home. Hospitality, wellness, dining, nature and experiences in Laguna, Philippines.";
+const FALLBACK_DESCRIPTION =
+  "AFhomes hospitality, wellness, dining, nature and resort experiences in Laguna, Philippines.";
 
 function setMeta(attribute: "name" | "property", key: string, content: string) {
-  let element = document.head.querySelector<HTMLMetaElement>(
-    `meta[${attribute}="${key}"]`,
-  );
+  let element = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`);
   if (!element) {
     element = document.createElement("meta");
     element.setAttribute(attribute, key);
@@ -16,14 +14,29 @@ function setMeta(attribute: "name" | "property", key: string, content: string) {
   element.setAttribute("content", content);
 }
 
-function setCanonical(href: string) {
-  let link = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+function setLink(rel: string, href: string) {
+  let link = document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
   if (!link) {
     link = document.createElement("link");
-    link.rel = "canonical";
+    link.rel = rel;
     document.head.appendChild(link);
   }
   link.href = href;
+}
+
+function absoluteUrl(base: string, value: string) {
+  if (!value) return "";
+  try {
+    return new URL(value, `${base.replace(/\/$/, "")}/`).href;
+  } catch {
+    return "";
+  }
+}
+
+function pageTitle(title: string, template: string) {
+  if (template.includes("%s")) return template.replace("%s", title);
+  if (template.includes("{page}")) return template.replace("{page}", title);
+  return `${title} — ${template}`;
 }
 
 interface SeoProps {
@@ -31,24 +44,77 @@ interface SeoProps {
   description?: string;
   /** Absolute path (starting with /) used for canonical + og:url. */
   path?: string;
+  openGraphTitle?: string;
+  openGraphDescription?: string;
+  openGraphImage?: string;
 }
 
-/**
- * Lightweight SEO manager — sets the document title, canonical URL, and core
- * Open Graph / Twitter metadata for each route.
- */
-export function Seo({ title, description = DEFAULT_DESCRIPTION, path = "/" }: SeoProps) {
+/** Applies saved global and per-page SEO data to every public route. */
+export function Seo({ title, description, path = "/", openGraphTitle, openGraphDescription, openGraphImage }: SeoProps) {
   useEffect(() => {
-    const siteConfig = cmsRepository.getSiteConfig();
-    document.title = `${title} — AFhomes`;
-    setMeta("name", "description", description);
-    setMeta("property", "og:url", `${siteConfig.siteUrl}${path}`);
-    setMeta("property", "og:title", title);
-    setMeta("property", "og:description", description);
-    setMeta("name", "twitter:title", title);
-    setMeta("name", "twitter:description", description);
-    setCanonical(`${siteConfig.siteUrl}${path}`);
-  }, [title, description, path]);
+    const site = cmsRepository.getSiteConfig();
+    const saved = site.pageSeo.find((page) => page.path === path);
+    const canonicalBase = site.seo.canonicalSiteUrl || site.siteUrl;
+    const canonical = absoluteUrl(canonicalBase, path);
+    const effectiveTitle = saved?.seoTitle || title;
+    const documentTitle = path === "/" && !saved?.seoTitle
+      ? site.seo.siteTitle
+      : pageTitle(effectiveTitle, site.seo.titleTemplate);
+    const effectiveDescription = saved?.metaDescription || description || site.seo.metaDescription || FALLBACK_DESCRIPTION;
+    const ogTitle = saved?.openGraphTitle || openGraphTitle || effectiveTitle;
+    const ogDescription = saved?.openGraphDescription || openGraphDescription || effectiveDescription;
+    const ogImage = absoluteUrl(canonicalBase, saved?.openGraphImage.src || openGraphImage || site.seo.defaultSocialImage.src);
+
+    document.title = documentTitle;
+    setMeta("name", "description", effectiveDescription);
+    setMeta("name", "keywords", site.seo.keywords.join(", "));
+    setMeta("name", "robots", path === "/404" ? "noindex, follow" : "index, follow");
+    setMeta("property", "og:type", "website");
+    setMeta("property", "og:site_name", site.seo.siteTitle);
+    setMeta("property", "og:url", canonical);
+    setMeta("property", "og:title", ogTitle);
+    setMeta("property", "og:description", ogDescription);
+    setMeta("name", "twitter:card", ogImage ? "summary_large_image" : "summary");
+    setMeta("name", "twitter:title", ogTitle);
+    setMeta("name", "twitter:description", ogDescription);
+    if (ogImage) {
+      setMeta("property", "og:image", ogImage);
+      setMeta("name", "twitter:image", ogImage);
+    }
+    setLink("canonical", canonical);
+    if (site.seo.favicon.src) setLink("icon", absoluteUrl(canonicalBase, site.seo.favicon.src));
+
+    const primaryOffice = site.offices.find((office) => /head|resort/i.test(office.role)) ?? site.offices[0];
+    const socialUrls = site.socialLinks
+      .filter((link) => link.enabled)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((link) => link.url);
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Resort",
+      "@id": `${canonicalBase.replace(/\/$/, "")}#resort`,
+      name: site.businessName,
+      url: canonicalBase,
+      telephone: site.phone,
+      email: site.email,
+      image: ogImage || undefined,
+      address: primaryOffice ? {
+        "@type": "PostalAddress",
+        streetAddress: primaryOffice.lines.join(", "),
+        addressCountry: "PH",
+      } : undefined,
+      hasMap: primaryOffice?.mapUrl,
+      sameAs: socialUrls,
+    };
+    let script = document.head.querySelector<HTMLScriptElement>("#afhomes-local-business-schema");
+    if (!script) {
+      script = document.createElement("script");
+      script.id = "afhomes-local-business-schema";
+      script.type = "application/ld+json";
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(schema);
+  }, [title, description, path, openGraphTitle, openGraphDescription, openGraphImage]);
 
   return null;
 }

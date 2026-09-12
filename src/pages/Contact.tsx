@@ -78,6 +78,16 @@ export default function Contact() {
                           <p key={line}>{line}</p>
                         ))}
                       </address>
+                      {office.mapUrl && (
+                        <a
+                          href={office.mapUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-4 inline-flex text-sm font-semibold text-pine-800 underline decoration-leaf-400 underline-offset-4"
+                        >
+                          Open directions
+                        </a>
+                      )}
                     </div>
                   </Reveal>
                 ))}

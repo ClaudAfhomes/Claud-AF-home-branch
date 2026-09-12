@@ -1,12 +1,37 @@
 import type { SiteConfig } from "@/types/site";
+import logo from "@/assets/logo.png";
 
 export const siteConfig: SiteConfig = {
   siteUrl: "https://www.afhomes.com.ph",
+  businessName: "AFhomes Hotspring & Ecofarm Resort Corp.",
   brand: {
     name: "AFhomes",
     tagline: "Amazing & Fun. Your Home Away From Home.",
     mantra: "A new way to experience hospitality.",
   },
+  logo: { src: logo, alt: "AFhomes" },
+  social: {
+    facebookCorporate: "https://www.facebook.com/profile.php?id=61578604593811",
+    facebookResort: "https://www.facebook.com/AFHomes.Hotspring.and.Ecofarm.Resort",
+    youtube: "https://www.youtube.com/@AFHomesHotspringEcofarmResort",
+    instagram: "https://www.instagram.com/afhomeshotspringresort/",
+  },
+  socialLinks: [
+    { id: "facebook-corporate", label: "Facebook", platform: "facebook", url: "https://www.facebook.com/profile.php?id=61578604593811", enabled: true, sortOrder: 0 },
+    { id: "facebook-resort", label: "Hotspring & Ecofarm", platform: "facebook", url: "https://www.facebook.com/AFHomes.Hotspring.and.Ecofarm.Resort", enabled: true, sortOrder: 1 },
+    { id: "youtube", label: "YouTube", platform: "youtube", url: "https://www.youtube.com/@AFHomesHotspringEcofarmResort", enabled: true, sortOrder: 2 },
+    { id: "instagram", label: "Instagram", platform: "instagram", url: "https://www.instagram.com/afhomeshotspringresort/", enabled: true, sortOrder: 3 },
+  ],
+  seo: {
+    siteTitle: "AFhomes — Amazing & Fun. Your Home Away From Home.",
+    titleTemplate: "%s — AFhomes",
+    metaDescription: "Hospitality, wellness, dining, nature and experiences in Laguna, Philippines.",
+    keywords: ["AFhomes", "Laguna resort", "wellness hotel", "hotspring resort", "Japanese restaurant"],
+    canonicalSiteUrl: "https://www.afhomes.com.ph",
+    defaultSocialImage: { src: "", alt: "AFhomes hospitality and wellness experiences in Laguna" },
+    favicon: { src: "/logo.png", alt: "AFhomes favicon" },
+  },
+  pageSeo: [],
   email: "claudmarsjimenez.afhomes@gmail.com",
   phone: "+639604316867",
   phoneDisplay: "+63 960-431-6867",
@@ -29,11 +54,13 @@ export const siteConfig: SiteConfig = {
         "Units 106F and 201–207",
         "Landmark: Puregold, Alaminos",
       ],
+      mapUrl: "https://maps.app.goo.gl/mJqoxkhNU1cMxu6LA",
     },
     {
       name: "AFhomes Hotspring & Ecofarm Resort Corp.",
       role: "Head Office",
       lines: ["Brgy. Perez, Calauan, Laguna", "4012"],
+      mapUrl: "https://www.bing.com/maps/search?v=2&pc=FACEBK&mid=8100&mkt=en-US&fbclid=IwY2xjawUQkdZwZG9mAWV4dG4DYWVtAjEwAGJyaWQRMTY1WEt0Wm9nZG9YcFZiMXVzcnRjBmFwcF9pZBAyMjIwMzkxNzg4MjAwODkyAAEeovOOLJH9VPLIRq9T9Me6VE6IR73cW2iNQPSP3owo7aYUQ7L8UsCg8LL0Oas_aem_roy0cVpVjjHVt5U5ObZjrw&FORM=FBKPL1&style=r&q=AFhomes+Hotspring+%26+Ecofarm+Resort+Corp.+Brgy.+Perez%2C+Calauan%2C+Laguna+4012&cp=14.103134%7E121.256996&lvl=16",
     },
   ],
   nav: {

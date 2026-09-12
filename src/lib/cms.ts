@@ -18,6 +18,7 @@ import {
   loadDocuments,
   localValue,
   saveDocuments as localSaveDocuments,
+  type HistoryFilters,
   type LocalRevision,
 } from "@/lib/cmsLocal";
 import { supabase } from "@/lib/supabase";
@@ -88,6 +89,42 @@ function mapSaveError(message: string) {
   return new Error(message);
 }
 
+const documentLabels: Record<DocumentKey, string> = {
+  site: "Site settings", pageContent: "Page content", experiences: "Experiences", vip: "VIP plans", faq: "FAQs", stories: "Stories", mediaBlocks: "Page media",
+};
+
+function changeSummary(key: DocumentKey, previous: unknown, next: unknown) {
+  const label = documentLabels[key];
+  if (previous === undefined) return `${label} created.`;
+  if (JSON.stringify(previous) === JSON.stringify(next)) return `${label} saved without content changes.`;
+  if (key === "site" && previous && next && typeof previous === "object" && typeof next === "object") {
+    const before = previous as Record<string, unknown>;
+    const after = next as Record<string, unknown>;
+    const namedFields: Array<[string, string]> = [["businessName", "business name"], ["phoneDisplay", "contact phone"], ["email", "contact email"]];
+    for (const [field, fieldLabel] of namedFields) {
+      if (before[field] !== after[field]) return `Updated ${fieldLabel} from “${String(before[field] ?? "blank")}” to “${String(after[field] ?? "blank")}”.`;
+    }
+    const beforeLogo = (before.logo as { src?: string } | undefined)?.src;
+    const afterLogo = (after.logo as { src?: string } | undefined)?.src;
+    if (beforeLogo !== afterLogo) return afterLogo ? "Replaced the business logo." : "Removed the business logo.";
+  }
+  if (Array.isArray(previous) && Array.isArray(next)) {
+    const added = Math.max(0, next.length - previous.length);
+    const removed = Math.max(0, previous.length - next.length);
+    const updated = Math.min(previous.length, next.length) - Math.abs(next.length - previous.length);
+    return `${label}: ${added ? `added ${added}` : ""}${added && (removed || updated) ? ", " : ""}${removed ? `removed ${removed}` : ""}${(added || removed) && updated ? ", " : ""}${updated ? `updated ${updated}` : ""} item${next.length === 1 ? "" : "s"}.`;
+  }
+  if (previous && next && typeof previous === "object" && typeof next === "object") {
+    const previousEntries = previous as Record<string, unknown>;
+    const nextEntries = next as Record<string, unknown>;
+    const added = Object.keys(nextEntries).filter((item) => !(item in previousEntries)).length;
+    const removed = Object.keys(previousEntries).filter((item) => !(item in nextEntries)).length;
+    const updated = Object.keys(nextEntries).filter((item) => item in previousEntries && JSON.stringify(nextEntries[item]) !== JSON.stringify(previousEntries[item])).length;
+    return `${label}: ${added ? `added ${added}` : ""}${added && (removed || updated) ? ", " : ""}${removed ? `removed ${removed}` : ""}${(added || removed) && updated ? ", " : ""}${updated ? `updated ${updated}` : ""} field${added + removed + updated === 1 ? "" : "s"}.`;
+  }
+  return `${label} updated.`;
+}
+
 async function hydrateSupabaseDocuments(): Promise<void> {
   if (!supabase) {
     await loadDocuments();
@@ -109,14 +146,21 @@ async function hydrateSupabaseDocuments(): Promise<void> {
   writeCache(store);
 }
 
-export async function saveDocuments(changes: Partial<Record<DocumentKey, unknown>>): Promise<void> {
+export interface SaveDocumentOptions {
+  actionType?: LocalRevision["action_type"];
+  summaries?: Partial<Record<DocumentKey, string>>;
+}
+
+export async function saveDocuments(changes: Partial<Record<DocumentKey, unknown>>, options: SaveDocumentOptions = {}): Promise<void> {
   const validated: Partial<Record<DocumentKey, unknown>> = {};
   for (const key of Object.keys(changes) as DocumentKey[]) {
     validated[key] = validateDocument(key, changes[key]);
   }
+  const changeSummaries = Object.fromEntries((Object.keys(validated) as DocumentKey[]).map((key) => [key, options.summaries?.[key] ?? changeSummary(key, supabase ? readCache().documents[key] : localValue(key), validated[key])])) as Partial<Record<DocumentKey, string>>;
+  const changeActions = Object.fromEntries((Object.keys(validated) as DocumentKey[]).map((key) => [key, options.actionType ?? ((supabase ? readCache().documents[key] : localValue(key)) === undefined ? "created" : "updated")])) as Partial<Record<DocumentKey, LocalRevision["action_type"]>>;
 
   if (!supabase) {
-    await localSaveDocuments(validated);
+    await localSaveDocuments(validated, changeSummaries, changeActions);
     return;
   }
 
@@ -125,10 +169,19 @@ export async function saveDocuments(changes: Partial<Record<DocumentKey, unknown
     expected[key] = versions[key] ?? 0;
   }
 
-  const { data, error } = await supabase.rpc("save_cms_documents", {
+  let result = await supabase.rpc("save_cms_documents", {
     changes: validated,
     expected,
+    change_summaries: changeSummaries,
+    change_actions: changeActions,
   });
+  if (result.error && (result.error.code === "PGRST202" || result.error.message.includes("change_actions"))) {
+    result = await supabase.rpc("save_cms_documents", { changes: validated, expected, change_summaries: changeSummaries });
+  }
+  if (result.error && (result.error.code === "PGRST202" || result.error.message.includes("Could not find the function"))) {
+    result = await supabase.rpc("save_cms_documents", { changes: validated, expected });
+  }
+  const { data, error } = result;
   if (error) throw mapSaveError(error.message);
   applySavedRows((data ?? []) as Array<{ key: string; value: unknown; revision: number }>);
 }
@@ -141,23 +194,54 @@ function read<T>(key: DocumentKey, fallback: T): T {
   return readCachedDocument(key, fallback);
 }
 
-export async function listHistory(page: number): Promise<LocalRevision[]> {
-  if (!supabase) return localListHistory(page);
+export async function listHistory(page: number, filters: HistoryFilters = {}): Promise<LocalRevision[]> {
+  if (!supabase) return localListHistory(page, filters);
 
   const from = page * 25;
-  const { data, error } = await supabase
+  let query = supabase
     .from("cms_history")
-    .select("id, key, revision, saved_at")
+    .select("id, key, revision, saved_at, saved_by, saved_by_email, action_type, change_summary, value, after_value")
     .order("saved_at", { ascending: false })
     .range(from, from + 24);
-  if (error) throw new Error(error.message);
+  if (filters.key) query = query.eq("key", filters.key);
+  if (filters.action) query = query.eq("action_type", filters.action);
+  if (filters.user) query = query.ilike("saved_by_email", `%${filters.user.replace(/[%_,]/g, "")}%`);
+  if (filters.search) query = query.ilike("change_summary", `%${filters.search.replace(/[%_,]/g, "")}%`);
+  if (filters.dateFrom) query = query.gte("saved_at", `${filters.dateFrom}T00:00:00`);
+  if (filters.dateTo) query = query.lte("saved_at", `${filters.dateTo}T23:59:59.999`);
+  interface HistoryRow {
+    id: string | number;
+    key: string;
+    revision: number;
+    saved_at: string;
+    saved_by?: string | null;
+    saved_by_email?: string | null;
+    action_type?: string;
+    change_summary?: string | null;
+    value: unknown;
+    after_value?: unknown;
+  }
+  const primary = await query;
+  let data = (primary.data ?? []) as HistoryRow[];
+  let historyError = primary.error;
+  if (historyError?.code === "42703") {
+    const legacy = await supabase.from("cms_history").select("id, key, revision, saved_at, saved_by, change_summary, value").order("saved_at", { ascending: false }).range(from, from + 24);
+    data = (legacy.data ?? []) as HistoryRow[];
+    historyError = legacy.error;
+  }
+  if (historyError) throw new Error(historyError.message);
 
-  return (data ?? []).map((row) => ({
+  return data.map((row) => ({
     id: String(row.id),
     key: row.key as DocumentKey,
-    value: null,
+    value: row.value,
+    after_value: row.after_value,
     revision: row.revision,
     saved_at: row.saved_at,
+    saved_by: row.saved_by ?? null,
+    saved_by_email: row.saved_by_email ?? null,
+    action_type: (row.action_type ?? "updated") as LocalRevision["action_type"],
+    change_summary: row.change_summary ?? "Content updated.",
   }));
 }
 
@@ -285,13 +369,15 @@ export const cmsRepository = {
   },
 
   getPageContent(): PageContent {
-    const saved = read("pageContent", structuredClone(seedPageContent));
-    return Object.fromEntries(
+    const stored = !supabase ? localValue("pageContent") : readCache().documents.pageContent;
+    const saved = stored && typeof stored === "object" ? stored as Partial<PageContent> : {};
+    const merged = Object.fromEntries(
       Object.entries(seedPageContent).map(([section, defaults]) => [
         section,
         { ...defaults, ...(saved[section as keyof PageContent] ?? {}) },
       ]),
     ) as unknown as PageContent;
+    return structuredClone(validateDocument("pageContent", merged) as PageContent);
   },
 
   savePageContent(content: PageContent) {

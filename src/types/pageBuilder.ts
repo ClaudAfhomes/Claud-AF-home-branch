@@ -7,6 +7,9 @@ export interface CmsPage {
   title: string;
   seo_title: string;
   seo_description: string;
+  open_graph_title: string;
+  open_graph_description: string;
+  open_graph_image: string;
   status: PageStatus;
   created_at?: string;
   updated_at?: string;
@@ -28,6 +31,9 @@ export interface PublishedPage {
   title: string;
   seo_title: string;
   seo_description: string;
+  open_graph_title: string;
+  open_graph_description: string;
+  open_graph_image: string;
   published_at: string;
   sections: CmsPageSection[];
 }

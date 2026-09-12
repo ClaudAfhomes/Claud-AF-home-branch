@@ -7,8 +7,16 @@ grant select on public.cms_documents to anon, authenticated;
 create table if not exists public.cms_history (
   id bigint generated always as identity primary key,
   key text not null, value jsonb not null, revision bigint not null,
-  saved_at timestamptz not null default now(), saved_by uuid references auth.users(id) on delete set null
+  saved_at timestamptz not null default now(), saved_by uuid references auth.users(id) on delete set null,
+  saved_by_email text,
+  action_type text not null default 'updated' check (action_type in ('created','updated','deleted','restored','published','unpublished')),
+  after_value jsonb,
+  change_summary text not null default '' check (length(change_summary) <= 1000)
 );
+alter table public.cms_history add column if not exists change_summary text not null default '' check (length(change_summary) <= 1000);
+alter table public.cms_history add column if not exists saved_by_email text;
+alter table public.cms_history add column if not exists action_type text not null default 'updated';
+alter table public.cms_history add column if not exists after_value jsonb;
 alter table public.cms_history enable row level security;
 revoke all on public.cms_history from anon, authenticated;
 grant select on public.cms_history to authenticated;
@@ -17,9 +25,10 @@ create policy "Admins read revisions" on public.cms_history for select to authen
 create index if not exists cms_history_saved_at on public.cms_history(saved_at desc);
 create index if not exists cms_history_saved_by on public.cms_history(saved_by);
 
-create or replace function public.save_cms_documents(changes jsonb, expected jsonb)
+drop function if exists public.save_cms_documents(jsonb,jsonb,jsonb);
+create function public.save_cms_documents(changes jsonb, expected jsonb, change_summaries jsonb default '{}'::jsonb, change_actions jsonb default '{}'::jsonb)
 returns setof public.cms_documents language plpgsql security definer set search_path = '' as $$
-declare entry record; current_version bigint; previous public.cms_documents; item jsonb;
+declare entry record; current_version bigint; previous public.cms_documents; requested_action text;
 begin
   if not public.is_admin() then raise exception 'Administrator access required' using errcode = '42501'; end if;
   if jsonb_typeof(changes) <> 'object' or changes = '{}'::jsonb or pg_column_size(changes) > 10485760 then raise exception 'Invalid content payload'; end if;
@@ -33,8 +42,10 @@ begin
     select * into previous from public.cms_documents where key = entry.key;
     current_version := coalesce(previous.revision, 0);
     if expected->>entry.key is null or current_version <> (expected->>entry.key)::bigint then raise exception 'Content conflict: reload before saving'; end if;
+    requested_action := coalesce(change_actions->>entry.key, case when previous.key is null then 'created' else 'updated' end);
+    if requested_action not in ('created','updated','deleted','restored','published','unpublished') then requested_action := 'updated'; end if;
     if previous.key is not null then
-      insert into public.cms_history(key,value,revision,saved_by) values(previous.key,previous.value,previous.revision,auth.uid());
+      insert into public.cms_history(key,value,after_value,revision,saved_by,saved_by_email,action_type,change_summary) values(previous.key,previous.value,entry.value,previous.revision,auth.uid(),(select email from auth.users where id=auth.uid()),requested_action,left(coalesce(change_summaries->>entry.key, 'Content updated.'), 1000));
     end if;
     insert into public.cms_documents(key,value,revision,updated_at) values(entry.key,entry.value,current_version+1,now())
       on conflict(key) do update set value=excluded.value, revision=excluded.revision, updated_at=excluded.updated_at;
@@ -42,8 +53,8 @@ begin
   return query select * from public.cms_documents where key in (select jsonb_object_keys(changes));
 end;
 $$;
-revoke all on function public.save_cms_documents(jsonb,jsonb) from public, anon, authenticated;
-grant execute on function public.save_cms_documents(jsonb,jsonb) to authenticated;
+revoke all on function public.save_cms_documents(jsonb,jsonb,jsonb,jsonb) from public, anon, authenticated;
+grant execute on function public.save_cms_documents(jsonb,jsonb,jsonb,jsonb) to authenticated;
 
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('cms-media','cms-media',true,26214400,array['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','video/quicktime'])

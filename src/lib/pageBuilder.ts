@@ -36,7 +36,9 @@ export async function listCmsPages(): Promise<CmsPage[]> {
 }
 
 export async function createCmsPage(title: string, slug: string): Promise<CmsPage> {
-  const { data, error } = await client().from("cms_pages").insert({ title, slug, seo_title: title, seo_description: "" }).select().single();
+  let result = await client().from("cms_pages").insert({ title, slug, seo_title: title, seo_description: "", open_graph_title: "", open_graph_description: "", open_graph_image: "" }).select().single();
+  if (result.error?.code === "PGRST204" || result.error?.code === "42703") result = await client().from("cms_pages").insert({ title, slug, seo_title: title, seo_description: "" }).select().single();
+  const { data, error } = result;
   if (error) throw new Error(error.message);
   return data as CmsPage;
 }
@@ -50,7 +52,7 @@ export async function loadDraftSections(pageId: string): Promise<CmsPageSection[
 export async function saveCmsPage(page: CmsPage, sections: CmsPageSection[]): Promise<void> {
   if (!page.title.trim() || page.title.length > 200) throw new Error("Page title must be between 1 and 200 characters.");
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(page.slug)) throw new Error("URL slug must use lowercase words separated by hyphens.");
-  if (page.seo_title.length > 200 || page.seo_description.length > 500) throw new Error("SEO title or description is too long.");
+  if (page.seo_title.length > 200 || page.seo_description.length > 500 || (page.open_graph_title ?? "").length > 200 || (page.open_graph_description ?? "").length > 500) throw new Error("SEO or Open Graph title/description is too long.");
   for (const section of sections) {
     if (!(section.block_type in blockLabels)) throw new Error("A page section has an unsupported block type.");
     const encoded = JSON.stringify(section.content);
@@ -59,7 +61,9 @@ export async function saveCmsPage(page: CmsPage, sections: CmsPageSection[]): Pr
       if (/url$/i.test(key) && typeof value === "string" && value && !/^(?:https?:\/\/|\/)/.test(value)) throw new Error(`${blockLabels[section.block_type]}: ${key} must be an HTTPS URL or local path.`);
     }
   }
-  const { error: pageError } = await client().from("cms_pages").update({ slug: page.slug, title: page.title, seo_title: page.seo_title, seo_description: page.seo_description, updated_at: new Date().toISOString() }).eq("id", page.id);
+  let pageResult = await client().from("cms_pages").update({ slug: page.slug, title: page.title, seo_title: page.seo_title, seo_description: page.seo_description, open_graph_title: page.open_graph_title ?? "", open_graph_description: page.open_graph_description ?? "", open_graph_image: page.open_graph_image ?? "", updated_at: new Date().toISOString() }).eq("id", page.id);
+  if (pageResult.error?.code === "PGRST204" || pageResult.error?.code === "42703") pageResult = await client().from("cms_pages").update({ slug: page.slug, title: page.title, seo_title: page.seo_title, seo_description: page.seo_description, updated_at: new Date().toISOString() }).eq("id", page.id);
+  const pageError = pageResult.error;
   if (pageError) throw new Error(pageError.message);
   const rows = sections.map((section, index) => ({ ...section, page_id: page.id, sort_order: index, updated_at: new Date().toISOString() }));
   if (rows.length) {

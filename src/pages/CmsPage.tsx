@@ -12,5 +12,5 @@ export default function CmsPage() {
   if (loading) return <LoadingState />;
   if (error) return <ErrorState message={error.message} onRetry={retry} />;
   if (!data) return <NotFound />;
-  return <><Seo title={data.seo_title || data.title} description={data.seo_description} path={`/${data.slug}`} />{data.sections.map((section) => <BlockRenderer key={section.id} section={section} />)}</>;
+  return <><Seo title={data.seo_title || data.title} description={data.seo_description} path={`/${data.slug}`} openGraphTitle={data.open_graph_title} openGraphDescription={data.open_graph_description} openGraphImage={data.open_graph_image} />{data.sections.map((section) => <BlockRenderer key={section.id} section={section} />)}</>;
 }

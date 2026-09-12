@@ -5,9 +5,37 @@ const optionalText = z.string().max(20000);
 const link = z.string().regex(/^(?:\/(?![\/\\])[^\\\s]*|https?:\/\/[^\s]+)$/, "Use a local path or an http(s) URL");
 const image = z.object({ src: z.string().regex(/^(?:|\/(?![\/\\])[^\\\s]*|https?:\/\/[^\s]+|data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+)$/, "Upload an image or use an http(s) URL"), alt: optionalText });
 const mediaSource = z.string().regex(/^(?:https?:\/\/[^\s]+|data:(?:image\/(?:png|jpeg|webp|gif)|video\/(?:mp4|webm|quicktime));base64,[A-Za-z0-9+/=]+)$/, "Upload media or use an http(s) URL");
+const externalUrl = z.string().url().regex(/^https?:\/\//, "Use an http(s) URL");
 const flags = { archived: z.boolean().optional(), featured: z.boolean().optional() };
 const slug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase words separated by hyphens");
 const nav = z.object({ label: text, path: link, description: optionalText.optional() });
+const socialLink = z.object({
+  id: text,
+  label: text,
+  platform: z.enum(["facebook", "instagram", "youtube", "other"]),
+  url: externalUrl,
+  enabled: z.boolean(),
+  sortOrder: z.number().int().nonnegative().max(1000),
+});
+const seoImage = image;
+const globalSeo = z.object({
+  siteTitle: text,
+  titleTemplate: text,
+  metaDescription: text.max(320),
+  keywords: z.array(text.max(80)).max(30),
+  canonicalSiteUrl: externalUrl,
+  defaultSocialImage: seoImage,
+  favicon: seoImage,
+});
+const pageSeo = z.object({
+  path: z.string().regex(/^\/(?:[a-z0-9-]+(?:\/[a-z0-9-]+)*)?$/, "Choose a valid website page"),
+  slug: optionalText,
+  seoTitle: optionalText.max(200),
+  metaDescription: optionalText.max(500),
+  openGraphTitle: optionalText.max(200),
+  openGraphDescription: optionalText.max(500),
+  openGraphImage: seoImage,
+});
 const story = z.object({ id: text, slug, title: text, category: text, date: text, excerpt: text, content: z.array(text).min(1), cover: image, ...flags });
 const experience = z.object({ id: text, slug, name: text, shortName: text, actionLabel: text, status: z.enum(["open", "opening-soon", "in-development"]), statusLabel: text, location: text, openingDate: optionalText.optional(), headline: text, summary: text, description: text, highlights: z.array(text), theme: z.enum(["culinary", "wellness", "nature"]), accent: text, image, ...flags });
 const count = z.number().int().nonnegative().max(100000000);
@@ -33,7 +61,7 @@ const mediaBlocks = z.array(z.object({
   muted: z.boolean().optional(),
 })).refine(unique, "Media section IDs must be unique");
 export const documentSchemas = {
-  site: z.object({ siteUrl: z.string().url().regex(/^https?:\/\//), brand: z.object({ name: text, tagline: text, mantra: text }), email: z.string().email(), phone: text, phoneDisplay: text, footerEyebrow: text.optional().default("AFhomes"), footerTitle: text.optional().default("Amazing & Fun.\nYour Home Away From Home."), footerNoticeTitle: text.optional().default("Important Notice"), footerNoticeBody: text.optional().default("AFHOMES is a hospitality and resort developer and operator. Payments must use official channels."), footerCopyright: text.optional().default("AFhomes Group of Companies. All rights reserved."), footerExploreLabel: text.optional().default("Explore"), footerExperiencesLabel: text.optional().default("Experiences"), footerContactLabel: text.optional().default("Contact"), footerOfficesLabel: text.optional().default("Offices"), offices: z.array(z.object({ name: text, role: text, lines: z.array(text) })), nav: z.object({ main: z.array(nav), experiences: z.array(nav) }) }),
+  site: z.object({ siteUrl: z.string().url().regex(/^https?:\/\//), businessName: text.optional().default("AFhomes Hotspring & Ecofarm Resort Corp."), brand: z.object({ name: text, tagline: text, mantra: text }), logo: image.optional(), social: z.object({ facebookCorporate: externalUrl, facebookResort: externalUrl, youtube: externalUrl, instagram: externalUrl }).default({ facebookCorporate: "https://www.facebook.com/profile.php?id=61578604593811", facebookResort: "https://www.facebook.com/AFHomes.Hotspring.and.Ecofarm.Resort", youtube: "https://www.youtube.com/@AFHomesHotspringEcofarmResort", instagram: "https://www.instagram.com/afhomeshotspringresort/" }), socialLinks: z.array(socialLink).max(30).optional().default([{ id: "facebook-corporate", label: "Facebook", platform: "facebook", url: "https://www.facebook.com/profile.php?id=61578604593811", enabled: true, sortOrder: 0 }, { id: "facebook-resort", label: "Hotspring & Ecofarm", platform: "facebook", url: "https://www.facebook.com/AFHomes.Hotspring.and.Ecofarm.Resort", enabled: true, sortOrder: 1 }, { id: "youtube", label: "YouTube", platform: "youtube", url: "https://www.youtube.com/@AFHomesHotspringEcofarmResort", enabled: true, sortOrder: 2 }, { id: "instagram", label: "Instagram", platform: "instagram", url: "https://www.instagram.com/afhomeshotspringresort/", enabled: true, sortOrder: 3 }]), seo: globalSeo.optional().default({ siteTitle: "AFhomes — Amazing & Fun. Your Home Away From Home.", titleTemplate: "%s — AFhomes", metaDescription: "Hospitality, wellness, dining, nature and experiences in Laguna, Philippines.", keywords: ["AFhomes", "Laguna resort", "wellness hotel", "hotspring resort", "Japanese restaurant"], canonicalSiteUrl: "https://www.afhomes.com.ph", defaultSocialImage: { src: "", alt: "AFhomes hospitality and wellness experiences in Laguna" }, favicon: { src: "/logo.png", alt: "AFhomes favicon" } }), pageSeo: z.array(pageSeo).max(100).optional().default([]), email: z.string().email(), phone: text, phoneDisplay: text, footerEyebrow: text.optional().default("AFhomes"), footerTitle: text.optional().default("Amazing & Fun.\nYour Home Away From Home."), footerNoticeTitle: text.optional().default("Important Notice"), footerNoticeBody: text.optional().default("AFHOMES is a hospitality and resort developer and operator. Payments must use official channels."), footerCopyright: text.optional().default("AFhomes Group of Companies. All rights reserved."), footerExploreLabel: text.optional().default("Explore"), footerExperiencesLabel: text.optional().default("Experiences"), footerContactLabel: text.optional().default("Contact"), footerOfficesLabel: text.optional().default("Offices"), offices: z.array(z.object({ name: text, role: text, lines: z.array(text), mapUrl: externalUrl.optional() })), nav: z.object({ main: z.array(nav), experiences: z.array(nav) }) }),
   experiences: z.array(experience).refine(unique, "IDs and URL slugs must be unique"),
   vip: z.array(vip).refine(unique, "IDs must be unique"),
   faq: z.array(z.object({ id: text, label: text, archived: z.boolean().optional(), items: z.array(z.object({ question: text, answer: text, archived: z.boolean().optional() })) })).refine(unique, "IDs must be unique"),

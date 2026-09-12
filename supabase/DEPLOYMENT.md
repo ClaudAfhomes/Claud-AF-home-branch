@@ -81,7 +81,11 @@ For detailed authentication, email, and local-development guidance, see
    configuration, not secrets; never add `SUPABASE_SECRET_KEYS` or
    `SUPABASE_SERVICE_ROLE_KEY` to Vercel.
 
-The visual CMS requires no additional Vercel variables.
+The visual CMS requires no additional Vercel variables. Apply migrations
+`20260912011423_cms_admin_experience_seo_history.sql` and
+`20260912012157_cms_settings_validation.sql` before deploying the matching
+frontend. They add categorized media metadata, Open Graph fields, detailed
+administrator history, and validation for the new settings document fields.
 
 ## Visual page builder
 
@@ -115,7 +119,7 @@ npx playwright install chromium
 npm run deploy:check
 ```
 
-- Confirm the six `cms_documents` keys can be read anonymously.
+- Confirm the seven `cms_documents` keys can be read anonymously.
 - Confirm an unlisted authenticated user cannot update CMS documents or read inquiries.
 - Confirm the listed administrator can save CMS documents and update inquiry status/notes.
 - Submit the same inquiry twice and confirm the same request ID is returned without a duplicate row.
