@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { LoadingState } from "@/components/ui/Feedback";
+import { Eye, EyeOff } from "@/components/ui/icons";
 import {
   consumeAdminAuthCallback,
   isAdminAuthenticated,
@@ -154,10 +155,11 @@ export default function AdminLogin() {
                 <button
                   type="button"
                   onClick={() => setPasswordVisible((visible) => !visible)}
-                  className="absolute top-1/2 right-3 -translate-y-1/2 text-xs font-semibold text-pine-800 hover:text-leaf-700"
+                  className="absolute top-1/2 right-2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-pine-800 hover:bg-leaf-100 hover:text-leaf-700"
                   aria-label={passwordVisible ? "Hide password" : "Show password"}
+                  title={passwordVisible ? "Hide password" : "Show password"}
                 >
-                  {passwordVisible ? "Hide" : "Show"}
+                  {passwordVisible ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </span>
             </label>
