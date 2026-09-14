@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { cmsRepository } from "@/lib/cms";
+import { useCmsRevision } from "@/hooks/useCmsRevision";
 
 const FALLBACK_DESCRIPTION =
   "AFhomes hospitality, wellness, dining, nature and resort experiences in Laguna, Philippines.";
@@ -12,6 +13,10 @@ function setMeta(attribute: "name" | "property", key: string, content: string) {
     document.head.appendChild(element);
   }
   element.setAttribute("content", content);
+}
+
+function removeMeta(attribute: "name" | "property", key: string) {
+  document.head.querySelector(`meta[${attribute}="${key}"]`)?.remove();
 }
 
 function setLink(rel: string, href: string) {
@@ -51,6 +56,8 @@ interface SeoProps {
 
 /** Applies saved global and per-page SEO data to every public route. */
 export function Seo({ title, description, path = "/", openGraphTitle, openGraphDescription, openGraphImage }: SeoProps) {
+  const cmsRevision = useCmsRevision();
+
   useEffect(() => {
     const site = cmsRepository.getSiteConfig();
     const saved = site.pageSeo.find((page) => page.path === path);
@@ -80,9 +87,14 @@ export function Seo({ title, description, path = "/", openGraphTitle, openGraphD
     if (ogImage) {
       setMeta("property", "og:image", ogImage);
       setMeta("name", "twitter:image", ogImage);
+    } else {
+      removeMeta("property", "og:image");
+      removeMeta("name", "twitter:image");
     }
     setLink("canonical", canonical);
-    if (site.seo.favicon.src) setLink("icon", new URL(site.seo.favicon.src, window.location.origin).href);
+    if (site.seo.favicon.src) {
+      setLink("icon", absoluteUrl(canonicalBase, site.seo.favicon.src));
+    }
 
     const primaryOffice = site.offices.find((office) => /head|resort/i.test(office.role)) ?? site.offices[0];
     const socialUrls = site.socialLinks
@@ -114,7 +126,7 @@ export function Seo({ title, description, path = "/", openGraphTitle, openGraphD
       document.head.appendChild(script);
     }
     script.textContent = JSON.stringify(schema);
-  }, [title, description, path, openGraphTitle, openGraphDescription, openGraphImage]);
+  }, [title, description, path, openGraphTitle, openGraphDescription, openGraphImage, cmsRevision]);
 
   return null;
 }

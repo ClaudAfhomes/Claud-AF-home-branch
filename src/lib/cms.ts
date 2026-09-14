@@ -318,10 +318,14 @@ export const cmsRepository = {
   async hydrate(): Promise<void> {
     if (supabase) {
       await hydrateSupabaseDocuments();
-      return;
+    } else {
+      await loadDocuments();
     }
 
-    await loadDocuments();
+    // Readers such as the SEO manager mount with the cached/seed document
+    // while the remote CMS is still loading. Notify them once hydration has
+    // completed so the authoritative document is applied to the current page.
+    window.dispatchEvent(new Event("afhomes-cms-updated"));
   },
   getStories(): Story[] {
     return this.getAllStories().filter((story) => !story.archived);

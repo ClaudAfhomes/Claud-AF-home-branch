@@ -12,6 +12,36 @@ test("public site and primary navigation render", async ({ page }) => {
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
+test("public routes expose complete SEO metadata and update it on navigation", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    "content",
+    /hospitality|wellness|AFhomes/i,
+  );
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    "href",
+    /\/$/,
+  );
+  await expect(page.locator('meta[property="og:title"]')).not.toHaveAttribute(
+    "content",
+    "",
+  );
+  await expect(page.locator('script#afhomes-local-business-schema')).toHaveAttribute(
+    "type",
+    "application/ld+json",
+  );
+
+  await page.getByRole("link", { name: "About", exact: true }).first().click();
+  await expect(page).toHaveURL(/\/about$/);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    "href",
+    /\/about$/,
+  );
+  await expect(page).toHaveTitle(/About/i);
+});
+
 const publicRoutes = [
   "/about",
   "/experiences",
