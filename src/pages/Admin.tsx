@@ -187,16 +187,6 @@ function CmsSidebar({
     <>
       <button
         type="button"
-        aria-label="Open navigation"
-        onClick={() => setOpen(true)}
-        className={`fixed top-5 left-4 z-30 grid h-10 w-10 place-items-center rounded-xl border border-line bg-cream-50 text-pine-900 shadow-soft transition-opacity hover:bg-leaf-100 lg:hidden ${open ? "pointer-events-none opacity-0" : "opacity-100"}`}
-      >
-        <span className="block h-0.5 w-5 bg-current" />
-        <span className="block h-0.5 w-5 bg-current" />
-        <span className="block h-0.5 w-5 bg-current" />
-      </button>
-      <button
-        type="button"
         aria-label="Close navigation"
         tabIndex={open ? 0 : -1}
         onClick={onClose}
@@ -691,7 +681,7 @@ export default function Admin() {
                   </h1>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex shrink-0 items-center gap-2 sm:gap-3">
                 <span
                   role="status"
                   className={`hidden rounded-full px-3 py-1.5 text-xs font-semibold sm:inline-flex ${dirty ? "bg-gold-100 text-ink-700" : "bg-leaf-100 text-pine-900"}`}
@@ -705,13 +695,13 @@ export default function Admin() {
                   to="/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hidden text-sm font-semibold text-pine-800 hover:text-leaf-700 md:block"
+                  className="hidden rounded-full px-3 py-2 text-sm font-semibold text-pine-800 transition-colors hover:bg-leaf-100 hover:text-pine-900 md:block"
                 >
                   View site ↗
                 </Link>
                 <button
                   type="button"
-                  className="text-sm font-semibold text-ink-500 hover:text-coral-700"
+                  className="rounded-full px-3 py-2 text-sm font-semibold text-ink-500 transition-colors hover:bg-coral-100 hover:text-coral-700"
                   onClick={async () => {
                     if (
                       dirty &&
