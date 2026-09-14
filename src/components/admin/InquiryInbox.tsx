@@ -20,7 +20,8 @@ const titleCase = (value: string) => value.replace(/^./, (character) => characte
 export function InquiryInbox() {
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState("");
-  const { data, loading, error, retry } = useAsync(() => inquiryService.list(page, status), [page, status]);
+  const [archived, setArchived] = useState(false);
+  const { data, loading, error, retry } = useAsync(() => inquiryService.list(page, status, archived), [page, status, archived]);
   const records = data?.records ?? [];
   const total = data?.total ?? 0;
   const firstRecord = total === 0 ? 0 : page * PAGE_SIZE + 1;
@@ -46,7 +47,7 @@ export function InquiryInbox() {
       </header>
 
       <div className="border-b border-line bg-cream-100/60 px-5 py-4 sm:px-8">
-        <div className="grid gap-3 sm:grid-cols-[minmax(12rem,1fr)_auto_auto] sm:items-end">
+        <div className="grid gap-3 sm:grid-cols-[minmax(12rem,1fr)_auto_auto_auto] sm:items-end">
           <label className="block sm:max-w-xs">
             <span className="label-caps text-ink-500">Filter by status</span>
             <select aria-label="Filter requests by status" className="cms-input mt-1.5 py-2.5" value={status} onChange={(event) => { setPage(0); setStatus(event.target.value); }}>
@@ -54,6 +55,7 @@ export function InquiryInbox() {
               {statuses.map((value) => <option key={value} value={value}>{titleCase(value)}</option>)}
             </select>
           </label>
+          <Button className="w-full sm:w-auto" variant="outline" size="sm" onClick={() => { setPage(0); setArchived((value) => !value); }}>{archived ? "View active" : "View archive"}</Button>
           <Button className="w-full sm:w-auto" size="sm" onClick={retry}>Refresh inbox</Button>
           <Button className="w-full sm:w-auto" variant="outline" size="sm" disabled={!records.length} onClick={() => downloadJson(records, "afhomes-inquiries-page.json")}>Export page</Button>
         </div>
@@ -73,7 +75,7 @@ export function InquiryInbox() {
               <p className="text-xs text-ink-400">Status updates are internal and do not contact the guest.</p>
             </div>
             <div className="space-y-4">
-              {records.map((record) => <InquiryCard key={`${record.id}-${record.status}-${record.notes}`} record={record} onSaved={retry} />)}
+              {records.map((record) => <InquiryCard key={`${record.id}-${record.status}-${record.notes}-${record.archived_at}`} record={record} archived={archived} onSaved={retry} />)}
             </div>
             <div className="mt-6 flex items-center justify-between border-t border-line pt-5">
               <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((value) => value - 1)}>Previous</Button>
@@ -87,7 +89,7 @@ export function InquiryInbox() {
   );
 }
 
-function InquiryCard({ record, onSaved }: { record: InquiryRecord; onSaved: () => void }) {
+function InquiryCard({ record, archived, onSaved }: { record: InquiryRecord; archived: boolean; onSaved: () => void }) {
   const [status, setStatus] = useState(record.status);
   const [notes, setNotes] = useState(record.notes);
   const [saving, setSaving] = useState(false);
@@ -101,6 +103,15 @@ function InquiryCard({ record, onSaved }: { record: InquiryRecord; onSaved: () =
     setError("");
     try { await inquiryService.update(record.id, status, notes); onSaved(); }
     catch (cause) { setError(cause instanceof Error ? cause.message : "Update failed"); }
+    finally { setSaving(false); }
+  };
+  const archive = async () => {
+    const verb = archived ? "Restore" : "Archive";
+    if (!(await confirmAction(`${verb} inquiry?`, archived ? "Return this request to the active inbox." : "Move this completed request out of the active inbox. It can be restored later."))) return;
+    setSaving(true);
+    setError("");
+    try { await inquiryService.archive(record.id, !archived); onSaved(); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : `${verb} failed`); }
     finally { setSaving(false); }
   };
 
@@ -139,7 +150,7 @@ function InquiryCard({ record, onSaved }: { record: InquiryRecord; onSaved: () =
         <fieldset disabled={saving} className="space-y-4 bg-cream-100/30 p-5 sm:p-6">
           <label className="block"><span className="label-caps text-ink-500">Progress</span><select className="cms-input" value={status} onChange={(event) => setStatus(event.target.value as InquiryStatus)}>{statuses.map((value) => <option key={value} value={value}>{titleCase(value)}</option>)}</select></label>
           <label className="block"><span className="label-caps text-ink-500">Internal notes</span><textarea rows={4} className="cms-input resize-y" maxLength={5000} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Add follow-up details for the team" /></label>
-          <Button className="w-full sm:w-auto" size="sm" disabled={!hasChanges || saving} onClick={() => void save()}>{saving ? "Saving..." : hasChanges ? "Save changes" : "Up to date"}</Button>
+          <div className="flex flex-col gap-2 sm:flex-row"><Button className="w-full sm:w-auto" size="sm" disabled={!hasChanges || saving} onClick={() => void save()}>{saving ? "Saving..." : hasChanges ? "Save changes" : "Up to date"}</Button><Button className="w-full sm:w-auto" variant="outline" size="sm" disabled={saving} onClick={() => void archive()}>{archived ? "Restore" : "Archive"}</Button></div>
           {error && <p role="alert" className="rounded-lg bg-coral-100 px-3 py-2 text-sm font-semibold text-coral-700">{error}</p>}
         </fieldset>
       </div>

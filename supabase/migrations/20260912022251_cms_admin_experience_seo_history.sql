@@ -164,3 +164,5 @@ revoke all on function public.restore_cms_page_version(bigint) from public, anon
 grant execute on function public.restore_cms_page_version(bigint) to authenticated;
 
 commit;
+
+;

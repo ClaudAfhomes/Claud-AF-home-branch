@@ -102,7 +102,7 @@ export default function Stories() {
                     <div className="flex flex-col justify-center p-8 sm:p-12">
                       <div className="flex items-center gap-3">
                         <Badge tone="gold">{featured.category}</Badge>
-                        <time className="text-xs font-medium text-ink-400" dateTime={featured.date}>
+                        <time className="text-xs font-medium text-ink-600" dateTime={featured.date}>
                           {featured.date}
                         </time>
                       </div>

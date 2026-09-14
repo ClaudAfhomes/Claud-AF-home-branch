@@ -119,7 +119,7 @@ export default function AdminLogin() {
     <main className="flex min-h-screen items-center bg-cream-100 py-12">
       <Container size="narrow">
         <div className="mx-auto max-w-md border border-line bg-cream-50 p-7 shadow-soft sm:p-10">
-          <p className="label-caps text-coral-600">AFhomes content studio</p>
+          <p className="label-caps text-coral-800">AFhomes content studio</p>
           <h1 className="font-display mt-2 text-4xl font-medium text-navy-900">Admin sign in</h1>
           <p className="mt-3 text-sm leading-relaxed text-ink-600">
             {hasSupabaseConfig
@@ -173,7 +173,7 @@ export default function AdminLogin() {
 
           <div className="my-6 flex items-center gap-4" aria-hidden="true">
             <span className="h-px flex-1 bg-line" />
-            <span className="label-caps text-ink-400">or</span>
+            <span className="label-caps text-ink-600">or</span>
             <span className="h-px flex-1 bg-line" />
           </div>
 
@@ -206,7 +206,7 @@ export default function AdminLogin() {
             </Link>
           </div>
 
-          <p className="mt-7 border-t border-line pt-5 text-xs leading-relaxed text-ink-400">
+          <p className="mt-7 border-t border-line pt-5 text-xs leading-relaxed text-ink-600">
             {hasSupabaseConfig
               ? "Content, media, and inquiries are stored in the connected AFhomes database."
               : "Local demo mode. Content and requests are saved in this browser only."}

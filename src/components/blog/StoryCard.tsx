@@ -32,7 +32,7 @@ export function StoryCard({ story }: StoryCardProps) {
       <div className="flex flex-1 flex-col p-7">
         <div className="flex items-center justify-between gap-3">
           <Badge tone="gold">{story.category}</Badge>
-          <time className="text-xs font-medium text-ink-400" dateTime={story.date}>
+          <time className="text-xs font-medium text-ink-600" dateTime={story.date}>
             {story.date}
           </time>
         </div>

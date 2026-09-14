@@ -13,3 +13,5 @@ when 'pageContent' then extensions.jsonb_matches_schema($schema${"$schema":"http
 else false end;
 $function$;
 revoke all on function public.validate_cms_document(text,jsonb) from public;
+
+;

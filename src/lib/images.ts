@@ -9,9 +9,9 @@
  * swapped for real AFhomes photography before production.
  */
 
-import goldCard from "@/assets/uploads/gold-card.png";
-import silverCard from "@/assets/uploads/silver-card.png";
-import bronzeCard from "@/assets/uploads/bronze-card.png";
+import goldCard from "@/assets/uploads/gold-card.webp";
+import silverCard from "@/assets/uploads/silver-card.webp";
+import bronzeCard from "@/assets/uploads/bronze-card.webp";
 import logo from "@/assets/logo.png";
 
 export type ImageKey = string;

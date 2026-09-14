@@ -1,5 +1,4 @@
 begin;
-
 create table public.cms_page_versions (
   id bigint generated always as identity primary key,
   page_id uuid not null references public.cms_pages(id) on delete cascade,
@@ -13,7 +12,6 @@ create table public.cms_page_versions (
 create index cms_page_versions_page_created on public.cms_page_versions(page_id, created_at desc);
 alter table public.cms_page_versions enable row level security;
 create policy "Admins read CMS page versions" on public.cms_page_versions for select to authenticated using ((select public.is_admin()));
-
 create or replace function public.publish_cms_page(target_page_id uuid)
 returns void language plpgsql security definer set search_path = '' as $$
 begin
@@ -36,7 +34,6 @@ begin
     select id,page_id,block_type,content,sort_order,is_visible from public.cms_page_sections where page_id=target_page_id;
 end;
 $$;
-
 create or replace function public.restore_cms_page_version(target_version_id bigint)
 returns void language plpgsql security definer set search_path = '' as $$
 declare selected public.cms_page_versions; section jsonb;
@@ -54,5 +51,4 @@ end;
 $$;
 revoke all on function public.restore_cms_page_version(bigint) from public, anon, authenticated;
 grant execute on function public.restore_cms_page_version(bigint) to authenticated;
-
 commit;

@@ -6,6 +6,7 @@ export interface InquiryRecord {
   inquiry_type: string; message: string; kind: "inquiry" | "reservation";
   visit_date: string | null; end_date: string | null; guests: number | null;
   status: InquiryStatus; notes: string;
+  archived_at?: string | null;
 }
 const KEY = "afhomes.inquiries.v1";
 export function readInquiries(): InquiryRecord[] {
@@ -18,12 +19,13 @@ export function storeInquiry(record: InquiryRecord) {
   catch { throw new Error("Browser storage is full or unavailable. Your request was not saved."); }
 }
 export const inquiriesApi = {
-  async list(page: number, status: string) {
+  async list(page: number, status: string, archived = false) {
     if (supabase) {
       const from = page * 20;
       let query = supabase
         .from("inquiries")
         .select("*", { count: "exact" })
+        .filter("archived_at", archived ? "not.is" : "is", null)
         .order("created_at", { ascending: false })
         .range(from, from + 19);
       if (status) query = query.eq("status", status);
@@ -32,7 +34,7 @@ export const inquiriesApi = {
       return { records: (data ?? []) as InquiryRecord[], total: count ?? 0 };
     }
 
-    const records = readInquiries().filter((record) => !status || record.status === status);
+    const records = readInquiries().filter((record) => Boolean(record.archived_at) === archived && (!status || record.status === status));
     return { records: records.slice(page * 20, page * 20 + 20), total: records.length };
   },
   async update(id: string, status: InquiryStatus, notes: string) {
@@ -53,6 +55,18 @@ export const inquiriesApi = {
     if (!records.some((record) => record.id === id)) throw new Error("Request not found.");
     try { localStorage.setItem(KEY, JSON.stringify(records.map((record) => record.id === id ? { ...record, status, notes } : record))); }
     catch { throw new Error("Browser storage is full or unavailable. Changes were not saved."); }
+  },
+  async archive(id: string, archived: boolean) {
+    const archivedAt = archived ? new Date().toISOString() : null;
+    if (supabase) {
+      const { data, error } = await supabase.from("inquiries").update({ archived_at: archivedAt }).eq("id", id).select("id").maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error("Request not found.");
+      return;
+    }
+    const records = readInquiries();
+    if (!records.some((record) => record.id === id)) throw new Error("Request not found.");
+    localStorage.setItem(KEY, JSON.stringify(records.map((record) => record.id === id ? { ...record, archived_at: archivedAt } : record)));
   },
 };
 

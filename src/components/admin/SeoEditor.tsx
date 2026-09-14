@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { useAdminDraft } from "@/components/admin/DraftContext";
 import { cmsRepository } from "@/lib/cms";
+import { supabase } from "@/lib/supabase";
 import { uploadImage } from "@/lib/media";
 import type { ImageSpec } from "@/lib/images";
 import type { PageSeoSettings, SiteConfig } from "@/types/site";
@@ -230,7 +231,12 @@ export function SeoEditor({ notify }: { notify: (message: string) => void }) {
     setSaving(true);
     try {
       await cmsRepository.saveSiteConfig(config);
-      notify("SEO settings updated successfully.");
+      if (supabase) {
+        const { error } = await supabase.functions.invoke("trigger-site-build");
+        notify(error ? "SEO saved. The static-page rebuild could not be requested; publish a deployment manually." : "SEO saved and a fresh static-page deployment was requested.");
+      } else {
+        notify("SEO settings updated successfully.");
+      }
     } catch (cause) {
       notify(
         cause instanceof Error

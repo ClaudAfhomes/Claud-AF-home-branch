@@ -305,3 +305,5 @@ revoke all on function public.save_cms_documents(jsonb,jsonb,jsonb,jsonb,jsonb,j
 grant execute on function public.save_cms_documents(jsonb,jsonb,jsonb,jsonb,jsonb,jsonb) to authenticated;
 
 commit;
+
+;

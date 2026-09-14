@@ -58,7 +58,7 @@ function ExperienceRow({
 
         <div className={cn(reversed && "lg:order-1")}>
           <Reveal>
-            <span className="font-display text-6xl leading-none font-medium text-navy-800/15 sm:text-7xl">
+            <span aria-hidden="true" className="font-display text-6xl leading-none font-medium text-navy-800/60 sm:text-7xl">
               {String(index + 1).padStart(2, "0")}
             </span>
           </Reveal>

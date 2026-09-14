@@ -4,6 +4,16 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/about", "destination": "/about/index.html" },
+    { "source": "/experiences", "destination": "/experiences/index.html" },
+    { "source": "/experiences/smart-wellness-hotel", "destination": "/experiences/smart-wellness-hotel/index.html" },
+    { "source": "/experiences/alm-japanese-restaurant", "destination": "/experiences/alm-japanese-restaurant/index.html" },
+    { "source": "/experiences/hotspring-ecofarm-resort", "destination": "/experiences/hotspring-ecofarm-resort/index.html" },
+    { "source": "/vip", "destination": "/vip/index.html" },
+    { "source": "/stories", "destination": "/stories/index.html" },
+    { "source": "/faq", "destination": "/faq/index.html" },
+    { "source": "/compliance", "destination": "/compliance/index.html" },
+    { "source": "/contact", "destination": "/contact/index.html" },
     {
       "source": "/(.*)",
       "destination": "/index.html"
@@ -37,6 +47,22 @@
         {
           "key": "X-Frame-Options",
           "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; upgrade-insecure-requests"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Cross-Origin-Resource-Policy",
+          "value": "same-site"
         }
       ]
     }

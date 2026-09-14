@@ -1,1 +1,0 @@
--- Baseline migration already applied to the remote project before migration files were adopted.

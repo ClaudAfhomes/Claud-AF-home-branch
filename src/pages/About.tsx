@@ -71,13 +71,15 @@ export default function About() {
               {content.stats.map((stat) => (
                 <div key={stat.label}>
                   <dt className="sr-only">{stat.label}</dt>
-                  <CountUp
-                    value={Number(stat.value)}
-                    minDigits={stat.value.length}
-                    className="font-display text-5xl font-medium text-leaf-700 sm:text-6xl"
-                  />
-                  <dd className="mt-3 max-w-[14rem] text-sm leading-relaxed text-ink-500">
-                    {stat.label}
+                  <dd>
+                    <CountUp
+                      value={Number(stat.value)}
+                      minDigits={stat.value.length}
+                      className="font-display text-5xl font-medium text-leaf-700 sm:text-6xl"
+                    />
+                    <span className="mt-3 block max-w-[14rem] text-sm leading-relaxed text-ink-500">
+                      {stat.label}
+                    </span>
                   </dd>
                 </div>
               ))}

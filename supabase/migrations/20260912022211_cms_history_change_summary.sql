@@ -33,3 +33,4 @@ revoke all on function public.save_cms_documents(jsonb,jsonb,jsonb) from public,
 grant execute on function public.save_cms_documents(jsonb,jsonb,jsonb) to authenticated;
 
 commit;
+;

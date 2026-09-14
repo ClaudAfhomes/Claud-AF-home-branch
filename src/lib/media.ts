@@ -47,10 +47,17 @@ function detectKind(file: File): MediaKind {
   return file.type.startsWith("video/") ? "video" : "image";
 }
 
-function assertMedia(file: File) {
+async function assertMedia(file: File) {
   if (!ALLOWED_TYPES.includes(file.type)) throw new Error("Choose an image or video file: JPEG, PNG, WebP, GIF, MP4, WebM, or MOV.");
   const limit = detectKind(file) === "video" ? MAX_VIDEO_BYTES : mediaMaxBytes;
   if (file.size > limit) throw new Error(`Files must be ${detectKind(file) === "video" ? "25 MB" : mediaMaxLabel} or smaller.`);
+  if (detectKind(file) === "image") {
+    const bitmap = await createImageBitmap(file);
+    const pixels = bitmap.width * bitmap.height;
+    const tooLarge = bitmap.width > 8000 || bitmap.height > 8000 || pixels > 32_000_000;
+    bitmap.close();
+    if (tooLarge) throw new Error("Images must be no larger than 8,000 px on either side or 32 megapixels. Resize and optimize this image first.");
+  }
 }
 
 function extensionFor(file: File) {
@@ -112,7 +119,7 @@ export async function listMedia(page: number): Promise<LocalMedia[]> {
 }
 
 export async function uploadMedia(file: File, metadata: { category?: string; altText?: string } = {}): Promise<string> {
-  assertMedia(file);
+  await assertMedia(file);
   const kind = detectKind(file);
   if (supabase) {
     const client = supabase;

@@ -133,8 +133,63 @@ npm run test:online -- https://your-deployment.vercel.app
 
 This checks direct SPA routes, `robots.txt`, `sitemap.xml`, browser-to-Supabase
 requests, runtime errors, and that the deployed administrator bundle contains
-the detailed Change History / Restore interface. Signing in remains a manual
-test because administrator credentials must not be stored in the repository.
+the detailed Change History / Restore interface. Authenticated checks remain
+opt-in because administrator credentials must not be stored in the repository.
+
+For authenticated release testing, create a dedicated administrator in a
+non-production Supabase staging project and set these variables only in the
+local QA shell or protected CI environment:
+
+```sh
+QA_ADMIN_EMAIL=qa-admin@example.com
+QA_ADMIN_PASSWORD=replace-with-a-staging-only-password
+QA_ALLOW_WRITES=true
+npm run test:staging
+```
+
+The staging test submits a disposable inquiry, signs in through the real admin
+flow, confirms that the request reached the inbox, and persists a status and
+notes update. Never provide production administrator credentials to CI.
+
+The production build prerenders crawler-readable metadata for managed public
+routes. It reads the public `site` CMS document when the two
+`VITE_SUPABASE_*` variables are available and otherwise uses checked-in safe
+defaults. Redeploy after SEO edits so social crawlers receive the new snapshot;
+browser navigation continues to apply CMS metadata immediately.
+
+To automate that refresh, create a Vercel deploy hook, store it only as a
+Supabase secret, and deploy the authenticated trigger function:
+
+```sh
+supabase secrets set VERCEL_DEPLOY_HOOK_URL=https://api.vercel.com/v1/integrations/deploy/...
+supabase functions deploy trigger-site-build
+```
+
+The SEO editor requests this function after a successful save. The function
+checks `is_admin()` before calling the secret hook; the hook URL is never sent
+to the browser.
+
+## Retention, recovery, and monitoring
+
+Apply `20260914024956_inquiry_retention.sql` before using the inbox Archive
+view. Archive completed requests first; a trusted service-role maintenance job
+may then call `purge_archived_inquiries(365)` to permanently remove records
+archived for at least one year. The RPC is deliberately unavailable to browser
+sessions. Choose the retention period with your privacy adviser and document
+each purge. The function refuses values outside 30–3650 days.
+
+Supabase provides managed database backups according to the project's plan.
+At least quarterly, restore the latest backup into a disposable non-production
+project, run `npm run test:staging` against it, verify inquiry and CMS history
+counts, then delete the disposable project. Record the backup timestamp,
+restore duration, tester, results, and remediation. Never test a restore over
+production.
+
+The scheduled `uptime.yml` workflow checks the production routes every six
+hours. Configure GitHub Actions failure notifications (or connect them to the
+team's incident channel) and set `VITE_ERROR_REPORTING_ENDPOINT` to the chosen
+HTTPS error collector. Treat repeated smoke failures, elevated Edge Function
+errors, or missing inquiry email delivery as operational incidents.
 
 - Confirm the seven `cms_documents` keys can be read anonymously.
 - Confirm an unlisted authenticated user cannot update CMS documents or read inquiries.

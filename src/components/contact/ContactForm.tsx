@@ -244,7 +244,7 @@ export function ContactForm() {
         )}
       </div>
 
-      <p className={cn("text-xs leading-relaxed text-ink-400")}>
+      <p className={cn("text-xs leading-relaxed text-ink-600")}>
         By submitting, you agree that AFhomes may contact you about your inquiry. Payments
         are never collected through this form — all official payments are handled directly by
         the AFhomes Finance Department through verified channels.

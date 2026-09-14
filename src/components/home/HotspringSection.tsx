@@ -58,12 +58,14 @@ export function HotspringSection() {
               <dl className="grid grid-cols-2 gap-6 border-t-2 border-pine-800/15 pt-8 sm:gap-8">
                 {content.hotspringStats.map((stat, index) => (
                   <div key={stat.label} className={index === 1 ? "border-l border-pine-800/15 pl-6 sm:pl-8" : undefined}>
-                    <CountUp
-                      value={stat.value}
-                      suffix={stat.suffix}
-                      className="font-display text-6xl leading-none font-medium text-pine-800 sm:text-8xl"
-                    />
                     <dt className="label-caps mt-3 text-ink-500">{stat.label}</dt>
+                    <dd>
+                      <CountUp
+                        value={stat.value}
+                        suffix={stat.suffix}
+                        className="font-display text-6xl leading-none font-medium text-pine-800 sm:text-8xl"
+                      />
+                    </dd>
                   </div>
                 ))}
               </dl>

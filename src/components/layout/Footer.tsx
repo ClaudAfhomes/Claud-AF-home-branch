@@ -96,7 +96,7 @@ export function Footer() {
                 >
                   {experience.shortName}
                 </Link>
-                <span className="mt-0.5 text-[0.62rem] font-semibold tracking-[0.16em] text-cream-300/50 uppercase">
+                <span className="mt-0.5 text-[0.62rem] font-semibold tracking-[0.16em] text-cream-200 uppercase">
                   {experience.statusLabel}
                 </span>
               </li>

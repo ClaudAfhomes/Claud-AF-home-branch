@@ -12,7 +12,7 @@ export function LoadingState({ label = "Loading…" }: { label?: string }) {
           />
         ))}
       </span>
-      <span className="label-caps text-ink-400">{label}</span>
+      <span className="label-caps text-ink-600">{label}</span>
     </div>
   );
 }

@@ -8,32 +8,42 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/prerender-seo.mjs",
+    "optimize:images": "node scripts/optimize-images.mjs",
     "package:source": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/package-source.ps1",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
     "test": "node --experimental-strip-types --test --test-isolation=none src/lib/cmsAudit.test.ts src/lib/cmsLocal.test.ts && playwright test",
+    "test:unit": "node --experimental-strip-types --test --test-isolation=none src/lib/cmsAudit.test.ts src/lib/cmsLocal.test.ts",
+    "test:ci": "npm run test:unit && playwright test --project=desktop-chromium --project=accessibility --project=mobile-chrome --project=tablet-chromium",
+    "test:staging": "playwright test --project=staging",
+    "test:accessibility": "playwright test --project=accessibility",
+    "test:visual": "playwright test --project=visual",
+    "test:visual:update": "playwright test --project=visual --update-snapshots",
+    "test:performance": "node scripts/check-performance-budget.mjs",
     "test:online": "node scripts/smoke-online.mjs",
-    "deploy:check": "npm run lint && npm run build && npm run test"
+    "deploy:check": "npm run lint && npm run build && npm run test:performance && npm run test"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0",
-    "motion": "^12.4.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-router-dom": "^7.1.0",
+    "motion": "13.2.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-router-dom": "7.18.3",
     "sweetalert2": "11.26.25",
-    "zod": "^4.5.4"
+    "zod": "4.6.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.1.0",
-    "@types/node": "^26.2.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@types/node": "26.5.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "sharp": "0.35.4",
     "tailwindcss": "^4.1.0",
-    "typescript": "~5.7.2",
-    "vite": "^6.0.0"
+    "typescript": "7.0.2",
+    "vite": "8.3.0"
   }
 }

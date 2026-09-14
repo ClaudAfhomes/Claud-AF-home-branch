@@ -1,5 +1,4 @@
- begin;
-
+begin;
 create table public.cms_pages (
   id uuid primary key default gen_random_uuid(),
   slug text not null unique check (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'),
@@ -11,7 +10,6 @@ create table public.cms_pages (
   updated_at timestamptz not null default now(),
   published_at timestamptz
 );
-
 create table public.cms_page_sections (
   id uuid primary key default gen_random_uuid(),
   page_id uuid not null references public.cms_pages(id) on delete cascade,
@@ -23,7 +21,6 @@ create table public.cms_page_sections (
   updated_at timestamptz not null default now()
 );
 create index cms_page_sections_page_order on public.cms_page_sections(page_id, sort_order);
-
 create table public.cms_published_pages (
   id uuid primary key references public.cms_pages(id) on delete cascade,
   slug text not null unique,
@@ -32,7 +29,6 @@ create table public.cms_published_pages (
   seo_description text not null default '',
   published_at timestamptz not null default now()
 );
-
 create table public.cms_published_sections (
   id uuid primary key references public.cms_page_sections(id) on delete cascade,
   page_id uuid not null references public.cms_published_pages(id) on delete cascade,
@@ -42,7 +38,6 @@ create table public.cms_published_sections (
   is_visible boolean not null
 );
 create index cms_published_sections_page_order on public.cms_published_sections(page_id, sort_order);
-
 create table public.cms_media_assets (
   id uuid primary key default gen_random_uuid(),
   storage_path text not null unique,
@@ -54,7 +49,6 @@ create table public.cms_media_assets (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-
 create table public.cms_navigation_items (
   id uuid primary key default gen_random_uuid(),
   label text not null check (length(label) between 1 and 100),
@@ -64,14 +58,12 @@ create table public.cms_navigation_items (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-
 create table public.cms_site_settings (
   key text primary key,
   value jsonb not null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-
 alter table public.cms_pages enable row level security;
 alter table public.cms_page_sections enable row level security;
 alter table public.cms_published_pages enable row level security;
@@ -79,7 +71,6 @@ alter table public.cms_published_sections enable row level security;
 alter table public.cms_media_assets enable row level security;
 alter table public.cms_navigation_items enable row level security;
 alter table public.cms_site_settings enable row level security;
-
 create policy "Admins manage CMS pages" on public.cms_pages for all to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
 create policy "Admins manage CMS page sections" on public.cms_page_sections for all to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
 create policy "Public reads published CMS pages" on public.cms_published_pages for select to anon, authenticated using (true);
@@ -90,7 +81,6 @@ create policy "Admins manage CMS navigation" on public.cms_navigation_items for 
 create policy "Public reads visible CMS navigation" on public.cms_navigation_items for select to anon using (is_visible);
 create policy "Admins manage CMS site settings" on public.cms_site_settings for all to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
 create policy "Public reads CMS site settings" on public.cms_site_settings for select to anon using (true);
-
 create or replace function public.publish_cms_page(target_page_id uuid)
 returns void language plpgsql security definer set search_path = '' as $$
 begin
@@ -107,7 +97,6 @@ end;
 $$;
 revoke all on function public.publish_cms_page(uuid) from public, anon, authenticated;
 grant execute on function public.publish_cms_page(uuid) to authenticated;
-
 create or replace function public.unpublish_cms_page(target_page_id uuid)
 returns void language plpgsql security definer set search_path = '' as $$
 begin
@@ -119,5 +108,4 @@ end;
 $$;
 revoke all on function public.unpublish_cms_page(uuid) from public, anon, authenticated;
 grant execute on function public.unpublish_cms_page(uuid) to authenticated;
-
 commit;

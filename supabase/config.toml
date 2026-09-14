@@ -1,2 +1,5 @@
 [functions.submit-inquiry]
 verify_jwt = false
+
+[functions.trigger-site-build]
+verify_jwt = true

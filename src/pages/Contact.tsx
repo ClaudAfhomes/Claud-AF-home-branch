@@ -36,8 +36,8 @@ export default function Contact() {
                     href={`mailto:${siteConfig.email}`}
                     className="group block rounded-[1.25rem] border border-line bg-cream-50 p-8 shadow-soft transition-shadow hover:shadow-lift"
                   >
-                    <p className="label-caps flex items-center gap-3 text-ink-400">
-                      <span className="font-display text-gold-600 italic">01</span>
+                    <p className="label-caps flex items-center gap-3 text-ink-600">
+                      <span className="font-display text-pine-800 italic">01</span>
                       {content.emailLabel}
                     </p>
                     <p className="font-display mt-3 text-2xl font-medium text-navy-900 transition-colors group-hover:text-leaf-700">
@@ -51,8 +51,8 @@ export default function Contact() {
                     href={`tel:${siteConfig.phone}`}
                     className="group block rounded-[1.25rem] border border-line bg-cream-50 p-8 shadow-soft transition-shadow hover:shadow-lift"
                   >
-                    <p className="label-caps flex items-center gap-3 text-ink-400">
-                      <span className="font-display text-gold-600 italic">02</span>
+                    <p className="label-caps flex items-center gap-3 text-ink-600">
+                      <span className="font-display text-pine-800 italic">02</span>
                       {content.phoneLabel}
                     </p>
                     <p className="font-display mt-3 text-2xl font-medium text-navy-900 transition-colors group-hover:text-leaf-700">
@@ -64,8 +64,8 @@ export default function Contact() {
                 {siteConfig.offices.map((office, index) => (
                   <Reveal key={office.name} delay={0.08 + index * 0.04}>
                     <div className="rounded-[1.25rem] border border-line bg-cream-50 p-8 shadow-soft">
-                      <p className="label-caps flex items-center gap-3 text-ink-400">
-                        <span className="font-display text-gold-600 italic">
+                      <p className="label-caps flex items-center gap-3 text-ink-600">
+                        <span className="font-display text-pine-800 italic">
                           {String(index + 3).padStart(2, "0")}
                         </span>
                         {office.role}
